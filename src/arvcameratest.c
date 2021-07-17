@@ -1,4 +1,5 @@
 #include <arvdebugprivate.h>
+#include <arvgvstreamprivate.h>
 #include <arv.h>
 #include <stdlib.h>
 #include <signal.h>
@@ -19,8 +20,8 @@ static gboolean arv_option_auto_socket_buffer = FALSE;
 static char *arv_option_packet_size_adjustment = NULL;
 static gboolean arv_option_no_packet_resend = FALSE;
 static double arv_option_packet_request_ratio = -1.0;
-static unsigned int arv_option_packet_timeout = 20;
-static unsigned int arv_option_frame_retention = 100;
+static unsigned int arv_option_packet_timeout = ARV_GV_STREAM_PACKET_TIMEOUT_US_DEFAULT / 1000;
+static unsigned int arv_option_frame_retention = ARV_GV_STREAM_FRAME_RETENTION_US_DEFAULT / 1000;
 static int arv_option_gv_stream_channel = -1;
 static int arv_option_gv_packet_delay = -1;
 static int arv_option_gv_packet_size = -1;
@@ -31,6 +32,7 @@ static char *arv_option_chunks = NULL;
 static int arv_option_bandwidth_limit = -1;
 static char *arv_option_register_cache = NULL;
 static char *arv_option_range_check = NULL;
+static int arv_option_duration_s = -1;
 
 /* clang-format off */
 static const GOptionEntry arv_option_entries[] =
@@ -167,6 +169,11 @@ static const GOptionEntry arv_option_entries[] =
 		NULL
 	},
 	{
+		"duration",	        		'\0', 0, G_OPTION_ARG_INT,
+		&arv_option_duration_s,		        "Test duration (s)",
+		NULL
+	},
+	{
 		"debug", 				'd', 0, G_OPTION_ARG_STRING,
 		&arv_option_debug_domains, 		NULL,
 		"{<category>[:<level>][,...]|help}"
@@ -184,6 +191,8 @@ typedef struct {
 
 	ArvChunkParser *chunk_parser;
 	char **chunks;
+
+        gint64 start_time;
 } ApplicationData;
 
 static gboolean cancel = FALSE;
@@ -270,7 +279,9 @@ periodic_task_cb (void *abstract_data)
 	data->error_count = 0;
 	data->transferred = 0;
 
-	if (cancel) {
+	if (cancel ||
+            (arv_option_duration_s > 0 &&
+             (g_get_monotonic_time() - data->start_time) > 1000000 * arv_option_duration_s)) {
 		g_main_loop_quit (data->main_loop);
 		return FALSE;
 	}
@@ -402,7 +413,7 @@ main (int argc, char **argv)
 		guint64 n_underruns;
 		guint uv_bandwidth;
 		guint min, max;
-		guint gv_n_channels, gv_channel_id, gv_packet_delay, gv_packet_size;
+		guint gv_n_channels, gv_channel_id, gv_packet_delay;
 		int gain;
 		guint software_trigger_source = 0;
 		gboolean success = TRUE;
@@ -485,7 +496,6 @@ main (int argc, char **argv)
 				if (error == NULL) gv_n_channels = arv_camera_gv_get_n_stream_channels (camera, &error);
 				if (error == NULL) gv_channel_id = arv_camera_gv_get_current_stream_channel (camera, &error);
 				if (error == NULL) gv_packet_delay = arv_camera_gv_get_packet_delay (camera, &error);
-				if (error == NULL) gv_packet_size = arv_camera_gv_get_packet_size (camera, &error);
 			}
 
 			if (error != NULL) {
@@ -497,36 +507,42 @@ main (int argc, char **argv)
 		}
 
 		if (success) {
-			printf ("vendor name           = %s\n", vendor_name);
-			printf ("model name            = %s\n", model_name);
-			printf ("device serial number  = %s\n", serial_number);
-			printf ("image width           = %d\n", width);
-			printf ("image height          = %d\n", height);
+			printf ("vendor name            = %s\n", vendor_name);
+			printf ("model name             = %s\n", model_name);
+			printf ("device serial number   = %s\n", serial_number);
+			printf ("image width            = %d\n", width);
+			printf ("image height           = %d\n", height);
 			if (arv_camera_is_binning_available (camera, NULL)) {
-				printf ("horizontal binning    = %d\n", dx);
-				printf ("vertical binning      = %d\n", dy);
+				printf ("horizontal binning     = %d\n", dx);
+				printf ("vertical binning       = %d\n", dy);
 			}
-			if (arv_camera_is_exposure_time_available (camera, NULL)) 
-				printf ("exposure              = %g µs\n", exposure);
+			if (arv_camera_is_exposure_time_available (camera, NULL))
+				printf ("exposure               = %g µs\n", exposure);
 			if (arv_camera_is_gain_available (camera, NULL))
-				printf ("gain                  = %d dB\n", gain);
-			printf ("payload               = %d bytes\n", payload);
+				printf ("gain                   = %d dB\n", gain);
+			printf ("payload                = %d bytes\n", payload);
 			if (arv_camera_is_uv_device (camera)) {
 				if (arv_camera_uv_is_bandwidth_control_available (camera, NULL)) {
-					printf ("uv bandwidth limit    = %d [%d..%d]\n", uv_bandwidth, min, max);
+					printf ("uv bandwidth limit     = %d [%d..%d]\n", uv_bandwidth, min, max);
 				}
 			}
 			if (arv_camera_is_gv_device (camera)) {
-				printf ("gv n_stream channels  = %d\n", gv_n_channels);
-				printf ("gv current channel    = %d\n", gv_channel_id);
-				printf ("gv packet delay       = %d ns\n", gv_packet_delay);
-				printf ("gv packet size        = %d bytes\n", gv_packet_size);
+				printf ("gv n_stream channels   = %d\n", gv_n_channels);
+				printf ("gv current channel     = %d\n", gv_channel_id);
+				printf ("gv packet delay        = %d ns\n", gv_packet_delay);
 			}
 
 		}
 
 		if (success) {
 		    stream = arv_camera_create_stream (camera, stream_cb, NULL, &error);
+
+                    if (arv_camera_is_gv_device (camera)) {
+                            guint gv_packet_size;
+
+                            gv_packet_size = arv_camera_gv_get_packet_size (camera, &error);
+                            printf ("gv packet size         = %d bytes\n", gv_packet_size);
+                    }
 
 		    if (ARV_IS_STREAM (stream)) {
 			    if (ARV_IS_GV_STREAM (stream)) {
@@ -576,6 +592,8 @@ main (int argc, char **argv)
 			    g_signal_connect (arv_camera_get_device (camera), "control-lost",
 					      G_CALLBACK (control_lost_cb), NULL);
 
+                            data.start_time = g_get_monotonic_time();
+
 			    g_timeout_add (1000, periodic_task_cb, &data);
 
 			    data.main_loop = g_main_loop_new (NULL, FALSE);
@@ -593,9 +611,13 @@ main (int argc, char **argv)
 
 			    arv_stream_get_statistics (stream, &n_completed_buffers, &n_failures, &n_underruns);
 
-			    g_print ("Completed buffers = %" G_GUINT64_FORMAT "\n", n_completed_buffers);
-			    g_print ("Failures          = %" G_GUINT64_FORMAT "\n", n_failures);
-			    g_print ("Underruns         = %" G_GUINT64_FORMAT "\n", n_underruns);
+                            for (i = 0; i < arv_stream_get_n_infos (stream); i++) {
+                                    if (arv_stream_get_info_type (stream, i) == G_TYPE_UINT64) {
+                                            g_print ("%-22s = %" G_GUINT64_FORMAT "\n",
+                                                     arv_stream_get_info_name (stream, i),
+                                                     arv_stream_get_info_uint64 (stream, i));
+                                    }
+                            }
 
 			    arv_camera_stop_acquisition (camera, NULL);
 

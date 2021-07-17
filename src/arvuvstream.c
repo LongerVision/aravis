@@ -54,9 +54,12 @@ typedef struct {
 
 	/* Statistics */
 
-	guint n_completed_buffers;
-	guint n_failures;
-	guint n_underruns;
+	guint64 n_completed_buffers;
+	guint64 n_failures;
+	guint64 n_underruns;
+
+        guint64 n_transferred_bytes;
+        guint64 n_ignored_bytes;
 } ArvUvStreamThreadData;
 
 typedef struct {
@@ -165,8 +168,11 @@ arv_uv_stream_thread (void *data)
 							thread_data->callback (thread_data->callback_data,
 									       ARV_STREAM_CALLBACK_TYPE_START_BUFFER,
 									       NULL);
-					} else
+                                                thread_data->n_transferred_bytes += transferred;
+					} else {
 						thread_data->n_underruns++;
+                                                thread_data->n_ignored_bytes += transferred;
+                                        }
 					break;
 				case ARV_UVSP_PACKET_TYPE_TRAILER:
 					if (buffer != NULL) {
@@ -188,6 +194,7 @@ arv_uv_stream_thread (void *data)
 										       ARV_STREAM_CALLBACK_TYPE_BUFFER_DONE,
 										       buffer);
 							thread_data->n_failures++;
+                                                        thread_data->n_ignored_bytes += transferred;
 							buffer = NULL;
 						} else {
 							buffer->priv->status = ARV_BUFFER_STATUS_SUCCESS;
@@ -197,6 +204,7 @@ arv_uv_stream_thread (void *data)
 										       ARV_STREAM_CALLBACK_TYPE_BUFFER_DONE,
 										       buffer);
 							thread_data->n_completed_buffers++;
+                                                        thread_data->n_transferred_bytes += transferred;
 							buffer = NULL;
 						}
 					}
@@ -207,9 +215,14 @@ arv_uv_stream_thread (void *data)
 							if (packet == incoming_buffer)
 								memcpy (((char *) buffer->priv->data) + offset, packet, transferred);
 							offset += transferred;
-						} else
+                                                        thread_data->n_transferred_bytes += transferred;
+						} else {
 							buffer->priv->status = ARV_BUFFER_STATUS_SIZE_MISMATCH;
-					}
+                                                        thread_data->n_ignored_bytes += transferred;
+                                                }
+					} else {
+                                                        thread_data->n_ignored_bytes += transferred;
+                                        }
 					break;
 				default:
 					arv_info_stream_thread ("Unknown packet type");
@@ -397,7 +410,7 @@ arv_uv_stream_constructed (GObject *object)
 	ArvUvStreamPrivate *priv = arv_uv_stream_get_instance_private (uv_stream);
 	ArvUvStreamThreadData *thread_data;
 
-	thread_data = g_new (ArvUvStreamThreadData, 1);
+	thread_data = g_new0 (ArvUvStreamThreadData, 1);
 	thread_data->stream = stream;
 
 	g_object_get (object,
@@ -406,33 +419,23 @@ arv_uv_stream_constructed (GObject *object)
 		      "callback-data", &thread_data->callback_data,
 		      NULL);
 
-	thread_data->n_completed_buffers = 0;
-	thread_data->n_failures = 0;
-	thread_data->n_underruns = 0;
-
 	priv->thread_data = thread_data;
+
+        arv_stream_declare_info (ARV_STREAM (uv_stream), "n_completed_buffers",
+                                 G_TYPE_UINT64, &thread_data->n_completed_buffers);
+        arv_stream_declare_info (ARV_STREAM (uv_stream), "n_failures",
+                                 G_TYPE_UINT64, &thread_data->n_failures);
+        arv_stream_declare_info (ARV_STREAM (uv_stream), "n_underruns",
+                                 G_TYPE_UINT64, &thread_data->n_underruns);
+        arv_stream_declare_info (ARV_STREAM (uv_stream), "n_transferred_bytes",
+                                 G_TYPE_UINT64, &thread_data->n_transferred_bytes);
+        arv_stream_declare_info (ARV_STREAM (uv_stream), "n_ignored_bytes",
+                                 G_TYPE_UINT64, &thread_data->n_ignored_bytes);
 
 	arv_uv_stream_start_thread (ARV_STREAM (uv_stream));
 }
 
 /* ArvStream implementation */
-
-static void
-arv_uv_stream_get_statistics (ArvStream *stream,
-				guint64 *n_completed_buffers,
-				guint64 *n_failures,
-				guint64 *n_underruns)
-{
-	ArvUvStream *uv_stream = ARV_UV_STREAM (stream);
-	ArvUvStreamPrivate *priv = arv_uv_stream_get_instance_private (uv_stream);
-	ArvUvStreamThreadData *thread_data;
-
-	thread_data = priv->thread_data;
-
-	*n_completed_buffers = thread_data->n_completed_buffers;
-	*n_failures = thread_data->n_failures;
-	*n_underruns = thread_data->n_underruns;
-}
 
 static void
 arv_uv_stream_init (ArvUvStream *uv_stream)
@@ -452,12 +455,17 @@ arv_uv_stream_finalize (GObject *object)
 
 		thread_data = priv->thread_data;
 
-		arv_info_stream ("[UvStream::finalize] n_completed_buffers    = %u",
+		arv_info_stream ("[UvStream::finalize] n_completed_buffers    = %" G_GUINT64_FORMAT,
 				  thread_data->n_completed_buffers);
-		arv_info_stream ("[UvStream::finalize] n_failures             = %u",
+		arv_info_stream ("[UvStream::finalize] n_failures             = %" G_GUINT64_FORMAT,
 				  thread_data->n_failures);
-		arv_info_stream ("[UvStream::finalize] n_underruns            = %u",
+		arv_info_stream ("[UvStream::finalize] n_underruns            = %" G_GUINT64_FORMAT,
 				  thread_data->n_underruns);
+
+		arv_info_stream ("[UvStream::finalize] n_transferred_bytes    = %" G_GUINT64_FORMAT,
+				  thread_data->n_transferred_bytes);
+		arv_info_stream ("[UvStream::finalize] n_ignored_bytes        = %" G_GUINT64_FORMAT,
+				  thread_data->n_ignored_bytes);
 
 		g_clear_object (&thread_data->uv_device);
 		g_clear_pointer (&priv->thread_data, g_free);
@@ -477,5 +485,4 @@ arv_uv_stream_class_init (ArvUvStreamClass *uv_stream_class)
 
 	stream_class->start_thread = arv_uv_stream_start_thread;
 	stream_class->stop_thread = arv_uv_stream_stop_thread;
-	stream_class->get_statistics = arv_uv_stream_get_statistics;
 }

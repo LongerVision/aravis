@@ -1,3 +1,32 @@
+Stable release 0.8.14
+=====================
+
+  * debug: fix debug timestamp on older platforms (Emmanuel)
+
+Stable release 0.8.13
+=====================
+
+  * viewer: fix incorrect bandwith and frame rate computation
+
+Stable release 0.8.12
+=====================
+
+  * usb3vision: initialize stream infos
+
+Stable release 0.8.11
+=====================
+
+  * stream: add an extensible info API (Emmanuel)
+  * gvstream: improve packet resend request behaviour in case of unordered gvsp
+    packets (Emmanuel)
+  * gvstream: wait for thread setup during ArvGvStream initialization (Emmanuel)
+  * gigevision: use MAC as serial number fallback (Emmanuel)
+  * genicam: fix arv_exposure_mode_to_string (Martin)
+  * usb3vision: improve error reporting in case of libsub error (Emmanuel)
+  * usb3vision: automatically detach kernel driver (Emmanuel)
+  * cameratest: add a test duration parameter (Emmanuel)
+  * misc: rename internal ArvStatistic to ArvHistogram (Emmanuel)
+
 Stable release 0.8.10
 =====================
 
