@@ -802,6 +802,12 @@ arv_camera_acquisition (ArvCamera *camera, guint64 timeout, GError **error)
 		if (local_error == NULL) {
 			arv_stream_push_buffer (stream,  arv_buffer_new (payload, NULL));
 			arv_camera_set_acquisition_mode (camera, ARV_ACQUISITION_MODE_SINGLE_FRAME, &local_error);
+                        if (local_error != NULL &&
+                            local_error->code == ARV_GC_ERROR_ENUM_ENTRY_NOT_FOUND) {
+                                g_clear_error (&local_error);
+                                /* Some cameras don't support SingleFrame, fall back to Continuous */
+                                arv_camera_set_acquisition_mode (camera, ARV_ACQUISITION_MODE_CONTINUOUS, &local_error);
+                        }
 		}
 		if (local_error == NULL)
 			arv_camera_start_acquisition (camera, &local_error);
@@ -1056,6 +1062,8 @@ arv_camera_set_frame_rate (ArvCamera *camera, double frame_rate, GError **error)
 			arv_camera_set_string (camera, "TriggerSelector", "FrameStart", &local_error);
 			if (local_error == NULL)
 				arv_camera_set_string (camera, "TriggerMode", "Off", &local_error);
+                        else
+                                g_clear_error (&local_error);
 			if (local_error == NULL)
 				arv_camera_set_float (camera,
 						      priv->has_acquisition_frame_rate ?
@@ -1225,6 +1233,7 @@ arv_camera_set_trigger (ArvCamera *camera, const char *source, GError **error)
 {
 	ArvCameraPrivate *priv = arv_camera_get_instance_private (camera);
 	GError *local_error = NULL;
+	gboolean has_frame_start = TRUE;
 
 	g_return_if_fail (ARV_IS_CAMERA (camera));
 	g_return_if_fail (source != NULL);
@@ -1232,22 +1241,37 @@ arv_camera_set_trigger (ArvCamera *camera, const char *source, GError **error)
 	if (priv->vendor == ARV_CAMERA_VENDOR_BASLER)
 		arv_camera_set_boolean (camera, "AcquisitionFrameRateEnable", FALSE, &local_error);
 
-	if (local_error == NULL)
-		arv_camera_set_string (camera, "TriggerSelector", "AcquisitionStart", &local_error);
-	if (local_error == NULL)
-		arv_camera_set_string (camera, "TriggerMode", "Off", &local_error);
-
-	if (local_error != NULL && local_error->code == ARV_GC_ERROR_ENUM_ENTRY_NOT_FOUND)
-		g_clear_error (&local_error);
-
-	if (local_error == NULL)
+	if (local_error == NULL) {
 		arv_camera_set_string (camera, "TriggerSelector", "FrameStart", &local_error);
-	if (local_error == NULL)
-		arv_camera_set_string (camera, "TriggerMode", "On", &local_error);
-	if (local_error == NULL)
+                if (local_error == NULL)
+                        arv_camera_set_string (camera, "TriggerMode", "On", &local_error);
+                else if (local_error->code == ARV_DEVICE_ERROR_FEATURE_NOT_FOUND ||
+                         local_error->code == ARV_GC_ERROR_ENUM_ENTRY_NOT_FOUND) {
+                        g_clear_error (&local_error);
+			has_frame_start = FALSE;
+		}
+        }
+
+
+	if (local_error == NULL) {
+		arv_camera_set_string (camera, "TriggerSelector", "AcquisitionStart", &local_error);
+                if (local_error == NULL)
+                        arv_camera_set_string (camera, "TriggerMode",
+					       has_frame_start ? "Off" : "On", &local_error);
+                else if (local_error->code == ARV_DEVICE_ERROR_FEATURE_NOT_FOUND ||
+                         local_error->code == ARV_GC_ERROR_ENUM_ENTRY_NOT_FOUND)
+                        g_clear_error (&local_error);
+        }
+
+	if (local_error == NULL) {
 		arv_camera_set_string (camera, "TriggerActivation", "RisingEdge", &local_error);
-	if (local_error == NULL)
-		arv_camera_set_string (camera, "TriggerSource", source, &local_error);
+                if (local_error != NULL && (local_error->code == ARV_DEVICE_ERROR_FEATURE_NOT_FOUND ||
+					    local_error->code == ARV_GC_ERROR_ENUM_ENTRY_NOT_FOUND))
+                        g_clear_error (&local_error);
+        }
+
+        if (local_error == NULL)
+                arv_camera_set_string (camera, "TriggerSource", source, &local_error);
 
 	if (local_error != NULL)
 		g_propagate_error (error, local_error);
@@ -2253,6 +2277,28 @@ arv_camera_get_float_bounds (ArvCamera *camera, const char *feature, double *min
 }
 
 /**
+ * arv_camera_get_float_increment:
+ * @camera: a #ArvCamera
+ * @feature: feature name
+ * @error: a #GError placeholder, %NULL to ignore
+ *
+ * Returns: @feature value increment, or #G_MINDOUBLE on error.
+ *
+ * Since: 0.8.16
+ */
+
+double
+arv_camera_get_float_increment (ArvCamera *camera, const char *feature, GError **error)
+{
+	ArvCameraPrivate *priv = arv_camera_get_instance_private (camera);
+
+	g_return_val_if_fail (ARV_IS_CAMERA (camera), 1);
+	g_return_val_if_fail (feature != NULL, 1);
+
+	return arv_device_get_float_feature_increment (priv->device, feature, error);
+}
+
+/**
  * arv_camera_dup_available_enumerations:
  * @camera: a #ArvCamera
  * @feature: feature name
@@ -3127,6 +3173,8 @@ arv_camera_constructed (GObject *object)
 	const char *vendor_name;
 	const char *model_name;
 	GError *error = NULL;
+
+        G_OBJECT_CLASS (arv_camera_parent_class)->constructed (object);
 
 	priv = arv_camera_get_instance_private (camera);
 

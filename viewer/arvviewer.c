@@ -24,18 +24,20 @@
 #include <gst/gst.h>
 #include <gst/app/gstappsrc.h>
 #include <gst/video/videooverlay.h>
+#include <gst/video/video.h>
 #include <arv.h>
 #include <arvdebugprivate.h>
 #include <arvviewer.h>
 #include <math.h>
 #include <memory.h>
-#include <libnotify/notify.h>
 #ifdef GDK_WINDOWING_X11
 #include <gdk/gdkx.h>  // for GDK_WINDOW_XID
 #endif
 #ifdef GDK_WINDOWING_WIN32
 #include <gdk/gdkwin32.h>  // for GDK_WINDOW_HWND
 #endif
+
+#define ARV_VIEWER_NOTIFICATION_TIMEOUT 10
 
 static gboolean has_autovideo_sink = FALSE;
 static gboolean has_gtksink = FALSE;
@@ -131,14 +133,13 @@ struct  _ArvViewer {
 	GstElement *pipeline;
 	GstElement *appsrc;
 	GstElement *transform;
+        GstElement *videosink;
 
 	guint rotation;
 	gboolean flip_vertical;
 	gboolean flip_horizontal;
 
 	double exposure_min, exposure_max;
-
-	NotifyNotification *notification;
 
 	GtkWidget *main_window;
 	GtkWidget *main_stack;
@@ -174,6 +175,13 @@ struct  _ArvViewer {
 	GtkWidget *auto_gain_toggle;
 	GtkWidget *acquisition_button;
 
+        GtkWidget *notification_revealer;
+        GtkWidget *notification_label;
+        GtkWidget *notification_details;
+        GtkWidget *notification_dismiss;
+
+        guint notification_timeout;
+
 	gulong camera_selected;
 	gulong exposure_spin_changed;
 	gulong gain_spin_changed;
@@ -199,6 +207,7 @@ struct  _ArvViewer {
 
 	gboolean auto_socket_buffer;
 	gboolean packet_resend;
+	guint initial_packet_timeout;
 	guint packet_timeout;
 	guint frame_retention;
 	ArvRegisterCachePolicy register_cache_policy;
@@ -222,6 +231,7 @@ void
 arv_viewer_set_options (ArvViewer *viewer,
 			gboolean auto_socket_buffer,
 			gboolean packet_resend,
+			guint initial_packet_timeout,
 			guint packet_timeout,
 			guint frame_retention,
 			ArvRegisterCachePolicy register_cache_policy,
@@ -231,6 +241,7 @@ arv_viewer_set_options (ArvViewer *viewer,
 
 	viewer->auto_socket_buffer = auto_socket_buffer;
 	viewer->packet_resend = packet_resend;
+	viewer->initial_packet_timeout = initial_packet_timeout;
 	viewer->packet_timeout = packet_timeout;
 	viewer->frame_retention = frame_retention;
 	viewer->register_cache_policy = register_cache_policy;
@@ -261,6 +272,51 @@ arv_viewer_value_from_log (double value, double min, double max)
 		return min;
 
 	return pow (10.0, (value * (log10 (max) - log10 (min)) + log10 (min)));
+}
+
+static void
+notification_dismiss_clicked_cb (GtkButton *dismiss, ArvViewer *viewer)
+{
+        if (viewer->notification_timeout > 0)
+                g_source_remove (viewer->notification_timeout);
+
+        gtk_revealer_set_reveal_child (GTK_REVEALER (viewer->notification_revealer), FALSE);
+
+        viewer->notification_timeout = 0;
+}
+
+static gboolean
+hide_notification (gpointer user_data)
+{
+        ArvViewer *viewer = user_data;
+
+        gtk_revealer_set_reveal_child (GTK_REVEALER (viewer->notification_revealer), FALSE);
+        viewer->notification_timeout = 0;
+
+        return G_SOURCE_REMOVE;
+}
+
+static void
+arv_viewer_show_notification (ArvViewer *viewer, const char *message, const char *details)
+{
+        g_return_if_fail (ARV_IS_VIEWER (viewer));
+        g_return_if_fail (message != NULL);
+
+        if (viewer->notification_timeout > 0)
+                g_source_remove (viewer->notification_timeout);
+
+        gtk_revealer_set_reveal_child (GTK_REVEALER (viewer->notification_revealer), FALSE);
+        gtk_label_set_text (GTK_LABEL (viewer->notification_label), message);
+        if (details != NULL) {
+                g_autofree char *text = g_strdup_printf ("<small>%s</small>", details);
+                gtk_widget_show (viewer->notification_details);
+                gtk_label_set_markup (GTK_LABEL (viewer->notification_details), text);
+        } else {
+                gtk_widget_hide (viewer->notification_details);
+        }
+        gtk_revealer_set_reveal_child (GTK_REVEALER (viewer->notification_revealer), TRUE);
+
+        viewer->notification_timeout = g_timeout_add_seconds (ARV_VIEWER_NOTIFICATION_TIMEOUT, hide_notification, viewer);
 }
 
 typedef struct {
@@ -613,10 +669,41 @@ set_camera_widgets(ArvViewer *viewer)
 	g_signal_handler_unblock (viewer->auto_exposure_toggle, viewer->auto_exposure_clicked);
 }
 
+static gboolean
+_save_gst_sample_to_file (GstSample *sample, const char *path, const char *mime_type, GError **error)
+{
+        GstSample *converted;
+        GstCaps *caps;
+        GstBuffer *gst_buffer;
+        gboolean success = FALSE;
+
+        g_return_val_if_fail (GST_IS_SAMPLE (sample), FALSE);
+
+        caps = gst_caps_from_string (mime_type);
+        converted = gst_video_convert_sample (sample, caps, GST_CLOCK_TIME_NONE, NULL);
+        gst_caps_unref (caps);
+
+        gst_buffer = gst_sample_get_buffer (converted);
+        if (gst_buffer) {
+                GstMapInfo map;
+
+                gst_buffer_map (gst_buffer, &map, GST_MAP_READ);
+                success = g_file_set_contents (path, (void *) map.data, map.size, error);
+                gst_buffer_unmap (gst_buffer, &map);
+        } else
+        gst_sample_unref (converted);
+
+        return success;
+}
+
 static void
 snapshot_cb (GtkButton *button, ArvViewer *viewer)
 {
-	GFile *file;
+        GtkFileFilter *filter;
+        GtkFileFilter *filter_all;
+        GtkWidget *dialog;
+        GstSample *sample;
+        ArvBuffer *buffer;
 	char *path;
 	char *filename;
 	GDateTime *date;
@@ -625,20 +712,19 @@ snapshot_cb (GtkButton *button, ArvViewer *viewer)
 	const char *data;
 	const char *pixel_format;
 	size_t size;
+        gint result;
+
+        sample = gst_base_sink_get_last_sample (GST_BASE_SINK (viewer->videosink));
+        buffer = g_object_ref (viewer->last_buffer);
+
+        if (!ARV_IS_BUFFER (buffer) && !GST_IS_SAMPLE (sample))
+                return;
 
 	g_return_if_fail (ARV_IS_CAMERA (viewer->camera));
-	g_return_if_fail (ARV_IS_BUFFER (viewer->last_buffer));
 
 	pixel_format = arv_camera_get_pixel_format_as_string (viewer->camera, NULL);
-	arv_buffer_get_image_region (viewer->last_buffer, NULL, NULL, &width, &height);
-	data = arv_buffer_get_data (viewer->last_buffer, &size);
-
-	path = g_build_filename (g_get_user_special_dir (G_USER_DIRECTORY_PICTURES),
-					 "Aravis", NULL);
-	file = g_file_new_for_path (path);
-	g_free (path);
-	g_file_make_directory (file, NULL, NULL);
-	g_object_unref (file);
+	arv_buffer_get_image_region (buffer, NULL, NULL, &width, &height);
+	data = arv_buffer_get_data (buffer, &size);
 
 	date = g_date_time_new_now_local ();
 	date_string = g_date_time_format (date, "%Y-%m-%d-%H:%M:%S");
@@ -649,22 +735,80 @@ snapshot_cb (GtkButton *button, ArvViewer *viewer)
 				    height,
 				    pixel_format != NULL ? pixel_format : "Unknown",
 				    date_string);
-	path = g_build_filename (g_get_user_special_dir (G_USER_DIRECTORY_PICTURES),
-				 "Aravis", filename, NULL);
-	g_file_set_contents (path, data, size, NULL);
+	g_free (date_string);
+	g_date_time_unref (date);
 
-	if (viewer->notification) {
-		notify_notification_update (viewer->notification,
-					    "Snapshot saved to Image folder",
-					    path,
-					    "gtk-save");
-		notify_notification_show (viewer->notification, NULL);
-	}
+	path = g_build_filename (g_get_user_special_dir (G_USER_DIRECTORY_PICTURES), filename, NULL);
+
+        dialog = gtk_file_chooser_dialog_new ("Save Snapshot", GTK_WINDOW (viewer->main_window),
+                                              GTK_FILE_CHOOSER_ACTION_SAVE,
+                                              "_Cancel",
+                                              GTK_RESPONSE_CANCEL,
+                                              "_Save",
+                                              GTK_RESPONSE_ACCEPT,
+                                              NULL);
+        gtk_file_chooser_set_do_overwrite_confirmation (GTK_FILE_CHOOSER (dialog), TRUE);
+        gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (dialog), path);
+        gtk_file_chooser_set_current_name (GTK_FILE_CHOOSER (dialog), filename);
+
+        filter_all = gtk_file_filter_new ();
+        gtk_file_filter_set_name (filter_all, "Supported image formats");
+
+        if (GST_IS_SAMPLE (sample)) {
+                filter = gtk_file_filter_new ();
+                gtk_file_filter_add_mime_type (filter, "image/png");
+                gtk_file_filter_add_mime_type (filter_all, "image/png");
+                gtk_file_filter_set_name (filter, "PNG (*.png)");
+                gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
+
+                filter = gtk_file_filter_new ();
+                gtk_file_filter_add_mime_type (filter, "image/jpeg");
+                gtk_file_filter_add_mime_type (filter_all, "image/jpeg");
+                gtk_file_filter_set_name (filter, "JPEG (*.jpeg)");
+                gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
+        }
+
+        if (ARV_IS_BUFFER (buffer)) {
+                filter = gtk_file_filter_new ();
+                gtk_file_filter_add_pattern (filter, "*.raw");
+                gtk_file_filter_add_pattern (filter_all, "*.raw");
+                gtk_file_filter_set_name (filter, "Raw images (*.raw)");
+                gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
+        }
+
+        gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter_all);
+        gtk_file_chooser_set_filter (GTK_FILE_CHOOSER (dialog), filter_all);
 
 	g_free (path);
 	g_free (filename);
-	g_free (date_string);
-	g_date_time_unref (date);
+
+        result = gtk_dialog_run (GTK_DIALOG (dialog));
+        if (result == GTK_RESPONSE_ACCEPT) {
+                g_autoptr (GError) error = NULL;
+                g_autofree char * content_type = NULL;
+                gboolean success = FALSE;
+
+                filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
+
+                content_type = g_content_type_guess (filename, NULL, 0, NULL);
+
+                if (GST_IS_SAMPLE (sample) && g_content_type_is_mime_type (content_type, "image/png")) {
+                        success = _save_gst_sample_to_file (sample, filename, "image/png", NULL);
+                } else if (GST_IS_SAMPLE (sample) && g_content_type_is_mime_type (content_type, "image/jpeg")) {
+                        success = _save_gst_sample_to_file (sample, filename, "image/jpeg", NULL);
+                } else if (ARV_IS_BUFFER (buffer)) {
+                        success = g_file_set_contents (filename, data, size, &error);
+                        g_free (filename);
+                }
+
+                if (!success)
+                        arv_viewer_show_notification (viewer, "Failed to save image to file",
+                                                      error != NULL ? error->message : NULL);
+        }
+
+        gtk_widget_destroy (dialog);
+        g_clear_pointer (&sample, gst_sample_unref);
+        g_clear_object (&buffer);
 }
 
 static void
@@ -952,7 +1096,6 @@ static gboolean
 start_video (ArvViewer *viewer)
 {
 	GstElement *videoconvert;
-	GstElement *videosink;
 	GstCaps *caps;
 	ArvPixelFormat pixel_format;
 	unsigned payload;
@@ -984,6 +1127,7 @@ start_video (ArvViewer *viewer)
 				      "packet-resend", ARV_GV_STREAM_PACKET_RESEND_NEVER,
 				      NULL);
 		g_object_set (viewer->stream,
+			      "initial-packet-timeout", (unsigned) viewer->initial_packet_timeout * 1000,
 			      "packet-timeout", (unsigned) viewer->packet_timeout * 1000,
 			      "frame-retention", (unsigned) viewer->frame_retention * 1000,
 			      NULL);
@@ -998,9 +1142,12 @@ start_video (ArvViewer *viewer)
 	pixel_format = arv_camera_get_pixel_format (viewer->camera, NULL);
 
 	caps_string = arv_pixel_format_to_gst_caps_string (pixel_format);
-	if (caps_string == NULL ||
-	    (g_str_has_prefix (caps_string, "video/x-bayer") && !has_bayer2rgb)) {
-		g_message ("GStreamer cannot understand the camera pixel format: 0x%x!\n", (int) pixel_format);
+	if (caps_string == NULL) {
+		g_message ("GStreamer cannot understand this camera pixel format: 0x%x!", (int) pixel_format);
+		stop_video (viewer);
+		return FALSE;
+        } else if (g_str_has_prefix (caps_string, "video/x-bayer") && !has_bayer2rgb) {
+		g_message ("GStreamer bayer plugin is required for pixel format: 0x%x!", (int) pixel_format);
 		stop_video (viewer);
 		return FALSE;
 	}
@@ -1047,23 +1194,23 @@ start_video (ArvViewer *viewer)
 #else
 		{
 #endif
-			videosink = gst_element_factory_make ("gtksink", NULL);
-			gst_bin_add_many (GST_BIN (viewer->pipeline), videosink, NULL);
-			gst_element_link_many (viewer->transform, videosink, NULL);
+			viewer->videosink = gst_element_factory_make ("gtksink", NULL);
+			gst_bin_add_many (GST_BIN (viewer->pipeline), viewer->videosink, NULL);
+			gst_element_link_many (viewer->transform, viewer->videosink, NULL);
 		}
 
-		g_object_get (videosink, "widget", &video_widget, NULL);
+		g_object_get (viewer->videosink, "widget", &video_widget, NULL);
 		gtk_container_add (GTK_CONTAINER (viewer->video_frame), video_widget);
 		gtk_widget_show (video_widget);
 		g_object_set(G_OBJECT (video_widget), "force-aspect-ratio", TRUE, NULL);
 		gtk_widget_set_size_request (video_widget, 640, 480);
 	} else {
-		videosink = gst_element_factory_make ("autovideosink", NULL);
-		gst_bin_add (GST_BIN (viewer->pipeline), videosink);
-		gst_element_link_many (viewer->transform, videosink, NULL);
+		viewer->videosink = gst_element_factory_make ("autovideosink", NULL);
+		gst_bin_add (GST_BIN (viewer->pipeline), viewer->videosink);
+		gst_element_link_many (viewer->transform, viewer->videosink, NULL);
 	}
 
-	g_object_set(G_OBJECT (videosink), "sync", FALSE, NULL);
+	g_object_set(G_OBJECT (viewer->videosink), "sync", FALSE, NULL);
 
 	caps = gst_caps_from_string (caps_string);
 	arv_camera_get_region (viewer->camera, NULL, NULL, &width, &height, NULL);
@@ -1124,6 +1271,20 @@ stop_camera (ArvViewer *viewer)
 	g_clear_pointer (&viewer->camera_name, g_free);
 }
 
+static void
+set_sensitive (GtkCellLayout *cell_layout,
+               GtkCellRenderer *cell,
+               GtkTreeModel *tree_model,
+               GtkTreeIter *iter,
+               gpointer data)
+{
+        gboolean valid;
+
+        gtk_tree_model_get (tree_model, iter, 1, &valid, -1);
+
+        g_object_set(cell, "sensitive", valid, NULL);
+}
+
 static gboolean
 start_camera (ArvViewer *viewer, const char *camera_id)
 {
@@ -1134,6 +1295,8 @@ start_camera (ArvViewer *viewer, const char *camera_id)
 	const char **pixel_format_strings;
 	guint i, n_pixel_formats, n_pixel_format_strings, n_valid_formats;
 	gboolean binning_available;
+        gboolean bayer_tooltip = FALSE;
+        gint current_format = -1;
 
 	stop_camera (viewer);
 
@@ -1166,19 +1329,37 @@ start_camera (ArvViewer *viewer, const char *camera_id)
 	pixel_format_string = arv_camera_get_pixel_format_as_string (viewer->camera, NULL);
 	for (i = 0; i < n_pixel_formats; i++) {
 		const char *caps_string = arv_pixel_format_to_gst_caps_string (pixel_formats[i]);
-		if ( caps_string != NULL &&
-		    (has_bayer2rgb || !g_str_has_prefix (caps_string, "video/x-bayer"))) {
-			gtk_list_store_append (list_store, &iter);
-			gtk_list_store_set (list_store, &iter, 0, pixel_format_strings[i], -1);
-			if (g_strcmp0 (pixel_format_strings[i], pixel_format_string) == 0)
-				gtk_combo_box_set_active (GTK_COMBO_BOX (viewer->pixel_format_combo), n_valid_formats);
+                gboolean valid = FALSE;
+
+                gtk_list_store_append (list_store, &iter);
+
+                if (caps_string != NULL && g_str_has_prefix (caps_string, "video/x-bayer") && !has_bayer2rgb) {
+                        bayer_tooltip = TRUE;
+                } else if (caps_string != NULL) {
+			if (current_format < 0 ||
+                            g_strcmp0 (pixel_format_strings[i], pixel_format_string) == 0)
+                                current_format = i;
 			n_valid_formats++;
+                        valid = TRUE;
 		}
+
+                gtk_list_store_set (list_store, &iter,
+                                    0, pixel_format_strings[i],
+                                    1, valid,
+                                    -1);
 	}
 	g_free (pixel_formats);
 	g_free (pixel_format_strings);
-	gtk_widget_set_sensitive (viewer->pixel_format_combo, n_valid_formats > 1);
-	gtk_widget_set_sensitive (viewer->video_mode_button, TRUE);
+	gtk_widget_set_sensitive (viewer->pixel_format_combo, n_valid_formats > 0);
+	gtk_widget_set_sensitive (viewer->video_mode_button, n_valid_formats > 0);
+
+	gtk_combo_box_set_active (GTK_COMBO_BOX (viewer->pixel_format_combo), current_format >= 0 ? current_format : 0);
+
+        gtk_widget_set_tooltip_text (GTK_WIDGET (viewer->pixel_format_combo),
+                                     bayer_tooltip ?
+                                     "Found bayer pixel formats, but the GStreamer bayer plugin "
+                                     "is not installed." :
+                                     NULL);
 
 	binning_available = arv_camera_is_binning_available (viewer->camera, NULL);
 	gtk_widget_set_sensitive (viewer->camera_binning_x, binning_available);
@@ -1287,6 +1468,8 @@ activate (GApplication *application)
 {
 	ArvViewer *viewer = (ArvViewer *) application;
 	g_autoptr (GtkBuilder) builder;
+        g_autoptr (GtkListStore) list_store = NULL;
+        GtkCellRenderer *renderer = gtk_cell_renderer_text_new();
 
 	builder = gtk_builder_new_from_resource ("/org/aravis/viewer/arv-viewer.ui");
 
@@ -1323,6 +1506,22 @@ activate (GApplication *application)
 	viewer->flip_vertical_toggle = GTK_WIDGET (gtk_builder_get_object (builder, "flip_vertical_togglebutton"));
 	viewer->flip_horizontal_toggle = GTK_WIDGET (gtk_builder_get_object (builder, "flip_horizontal_togglebutton"));
 	viewer->acquisition_button = GTK_WIDGET (gtk_builder_get_object (builder, "acquisition_button"));
+
+        viewer->notification_revealer = GTK_WIDGET (gtk_builder_get_object (builder, "notification_revealer"));
+        viewer->notification_label = GTK_WIDGET (gtk_builder_get_object (builder, "notification_label"));
+        viewer->notification_details = GTK_WIDGET (gtk_builder_get_object (builder, "notification_details"));
+        viewer->notification_dismiss = GTK_WIDGET (gtk_builder_get_object (builder, "notification_dismiss"));
+
+        g_signal_connect (viewer->notification_dismiss, "clicked",
+                          G_CALLBACK (notification_dismiss_clicked_cb), viewer);
+
+        list_store = gtk_list_store_new(2, G_TYPE_STRING, G_TYPE_BOOLEAN);
+        gtk_combo_box_set_model (GTK_COMBO_BOX (viewer->pixel_format_combo), GTK_TREE_MODEL (list_store));
+
+        gtk_cell_layout_clear (GTK_CELL_LAYOUT (viewer->pixel_format_combo));
+        gtk_cell_layout_pack_start (GTK_CELL_LAYOUT (viewer->pixel_format_combo), renderer, TRUE);
+        gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT (viewer->pixel_format_combo), renderer, "text", 0, NULL);
+        gtk_cell_layout_set_cell_data_func (GTK_CELL_LAYOUT (viewer->pixel_format_combo), renderer, set_sensitive, NULL, NULL);
 
 	gtk_widget_set_no_show_all (viewer->trigger_combo_box, TRUE);
 
@@ -1398,11 +1597,7 @@ viewer_shutdown (GApplication *application)
 static void
 finalize (GObject *object)
 {
-	ArvViewer *viewer = (ArvViewer *) object;
-
 	G_OBJECT_CLASS (arv_viewer_parent_class)->finalize (object);
-
-	g_clear_object (&viewer->notification);
 }
 
 ArvViewer *
@@ -1416,7 +1611,7 @@ arv_viewer_new (void)
   g_set_application_name ("ArvViewer");
 
   arv_viewer = g_object_new (arv_viewer_get_type (),
-			     "application-id", "org.aravis.ArvViewer",
+			     "application-id", "org.aravis.Aravis",
 			     "flags", G_APPLICATION_NON_UNIQUE,
 			     "inactivity-timeout", 30000,
 			     NULL);
@@ -1428,7 +1623,6 @@ arv_viewer_new (void)
 static void
 arv_viewer_init (ArvViewer *viewer)
 {
-	viewer->notification = notify_notification_new (NULL, NULL, NULL);
 	viewer->auto_socket_buffer = FALSE;
 	viewer->packet_resend = TRUE;
 	viewer->packet_timeout = 20;

@@ -5,7 +5,8 @@
 
 <p align="center"><strong>Your industrial vision library</strong></p>
 
-[![Build Status](https://travis-ci.org/AravisProject/aravis.svg?branch=master)](https://travis-ci.org/AravisProject/aravis)
+[![Aravis-CI](https://github.com/AravisProject/aravis/actions/workflows/aravis-ci.yml/badge.svg)](https://github.com/AravisProject/aravis/actions/workflows/aravis-ci.yml)
+[![Aravis-MinGW](https://github.com/AravisProject/aravis/actions/workflows/aravis-mingw.yml/badge.svg)](https://github.com/AravisProject/aravis/actions/workflows/aravis-mingw.yml)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/eaa741156c2041f19b35c336aedf426c)](https://www.codacy.com/gh/AravisProject/aravis/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=AravisProject/aravis&amp;utm_campaign=Badge_Grade)
 
 ### What is Aravis ?
@@ -66,6 +67,36 @@ meson configure -Dviewer=enabled
 ```
 
 Python bindings and camera simulator are not functional yet.
+
+#### Building on Windows
+
+[MSYS2](https://msys2.org) provides native [Aravis packages](https://packages.msys2.org/base/mingw-w64-aravis).
+The package includes the DLL, headers and utilities (including the viewer).
+
+To built Aravis by yourself, install MSYS2 and enter the mingw64 shell. Refer to
+[Aravis' PKGBUILD](https://github.com/msys2/MINGW-packages/blob/master/mingw-w64-aravis/PKGBUILD)
+for list of dependencies (such as `mingw-w64-x86_64-libxml2` and so on) which must be installed prior
+to building via `pacman -S ...`. The build process itself is the same as on other platforms (meson/ninja).
+
+##### Cross-compilation for Windows
+
+Aravis for Windows can be also cross-compiled on Linux (and used in Wine) using [crossroad](https://pypi.org/project/crossroad/), provided that cross-compiler and native build tools (`sudo apt install gcc-mingw-w64-x86-64 meson ninja=build` on Debian/Ubuntu) are installed:
+
+```
+# note: use the git version, not the one from pypi
+pip3 install --user git+git://git.tuxfamily.org/gitroot/crossroad/crossroad.git
+# create cross-compilation environment with architecture "w64" called "aravis"
+crossroad w64 aravis
+# install packages required for compilation; crossroad adds the mingw-w64_x86_64- prefix automatically
+crossroad install libnotify gstreamer gst-plugins-good gst-plugins-bad gst-plugins-bad gobject-introspection libusb gtk3 libxml2 zlib
+# clone aravis sources
+git clone https://github.com/AravisProject/aravis
+cd aravis
+# configure, crossroad adjusts meson for cross-compilation; build directory is created
+crossroad meson build
+# compile and install
+ninja -C build install
+```
 
 ### Utilities
 

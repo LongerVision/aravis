@@ -65,6 +65,7 @@ enum {
 	ARV_GV_STREAM_PROPERTY_SOCKET_BUFFER_SIZE,
 	ARV_GV_STREAM_PROPERTY_PACKET_RESEND,
 	ARV_GV_STREAM_PROPERTY_PACKET_REQUEST_RATIO,
+	ARV_GV_STREAM_PROPERTY_INITIAL_PACKET_TIMEOUT,
 	ARV_GV_STREAM_PROPERTY_PACKET_TIMEOUT,
 	ARV_GV_STREAM_PROPERTY_FRAME_RETENTION
 } ArvGvStreamProperties;
@@ -91,7 +92,7 @@ G_DEFINE_TYPE_WITH_CODE (ArvGvStream, arv_gv_stream, ARV_TYPE_STREAM, G_ADD_PRIV
 typedef struct {
 	gboolean received;
         gboolean resend_requested;
-	guint64 time_us;
+	guint64 abs_timeout_us;
 } ArvGvStreamPacketData;
 
 typedef struct {
@@ -135,6 +136,7 @@ struct _ArvGvStreamThreadData {
 
 	ArvGvStreamPacketResend packet_resend;
 	double packet_request_ratio;
+	guint initial_packet_timeout_us;
 	guint packet_timeout_us;
 	guint frame_retention_us;
 
@@ -483,9 +485,10 @@ _missing_packet_check (ArvGvStreamThreadData *thread_data,
 			gboolean need_resend;
 
 			if (i <= packet_id && !frame->packet_data[i].received) {
-                                if (frame->packet_data[i].time_us <= 0)
-                                        frame->packet_data[i].time_us = time_us;
-                                need_resend = time_us - frame->packet_data[i].time_us > thread_data->packet_timeout_us;
+                                if (frame->packet_data[i].abs_timeout_us == 0)
+                                        frame->packet_data[i].abs_timeout_us = time_us +
+                                                thread_data->initial_packet_timeout_us;
+                                need_resend = time_us > frame->packet_data[i].abs_timeout_us;
                         } else
                                 need_resend = FALSE;
 
@@ -535,7 +538,8 @@ _missing_packet_check (ArvGvStreamThreadData *thread_data,
 							      frame->extended_ids);
 
 					for (j = first_missing; j <= last_missing; j++) {
-						frame->packet_data[j].time_us = time_us;
+						frame->packet_data[j].abs_timeout_us = time_us +
+                                                        thread_data->packet_timeout_us;
                                                 frame->packet_data[j].resend_requested = TRUE;
                                         }
 
@@ -1079,11 +1083,6 @@ arv_gv_stream_thread (void *data)
 	thread_data->last_frame_id = 0;
 	thread_data->first_packet = TRUE;
 
-	arv_info_stream_thread ("[GvStream::stream_thread] Packet timeout = %g ms",
-				 thread_data->packet_timeout_us / 1000.0);
-	arv_info_stream_thread ("[GvStream::stream_thread] Frame retention = %g ms",
-				 thread_data->frame_retention_us / 1000.0);
-
 	if (thread_data->callback != NULL)
 		thread_data->callback (thread_data->callback_data, ARV_STREAM_CALLBACK_TYPE_INIT, NULL);
 
@@ -1174,136 +1173,6 @@ arv_gv_stream_new (ArvGvDevice *gv_device, ArvStreamCallback callback, void *cal
 			       NULL);
 }
 
-static void
-arv_gv_stream_constructed (GObject *object)
-{
-	ArvStream *stream = ARV_STREAM (object);
-	ArvGvStream *gv_stream = ARV_GV_STREAM (object);
-	ArvGvStreamPrivate *priv = arv_gv_stream_get_instance_private (ARV_GV_STREAM (stream));
-	ArvGvStreamThreadData *thread_data;
-	ArvGvStreamOption options;
-	g_autoptr (ArvGvDevice) gv_device = NULL;
-	GInetAddress *interface_address;
-	GInetAddress *device_address;
-	guint64 timestamp_tick_frequency;
-	const guint8 *address_bytes;
-	GInetSocketAddress *local_address;
-	guint packet_size;
-
-	g_object_get (object, "device", &gv_device, NULL);
-
-	timestamp_tick_frequency = arv_gv_device_get_timestamp_tick_frequency (gv_device, NULL);
-	options = arv_gv_device_get_stream_options (gv_device);
-
-	packet_size = arv_gv_device_get_packet_size (gv_device, NULL);
-	if (packet_size <= ARV_GVSP_PACKET_PROTOCOL_OVERHEAD) {
-		arv_gv_device_set_packet_size (gv_device, ARV_GV_DEVICE_GVSP_PACKET_SIZE_DEFAULT, NULL);
-		arv_info_device ("[GvStream::stream_new] Packet size set to default value (%d)",
-				  ARV_GV_DEVICE_GVSP_PACKET_SIZE_DEFAULT);
-	}
-
-	packet_size = arv_gv_device_get_packet_size (gv_device, NULL);
-	arv_info_device ("[GvStream::stream_new] Packet size = %d byte(s)", packet_size);
-
-	if (packet_size <= ARV_GVSP_PACKET_PROTOCOL_OVERHEAD) {
-		arv_stream_take_init_error (stream, g_error_new (ARV_DEVICE_ERROR, ARV_DEVICE_ERROR_PROTOCOL_ERROR,
-								 "Invalid packet size (%d byte(s))", packet_size));
-		return;
-	}
-
-	thread_data = g_new0 (ArvGvStreamThreadData, 1);
-
-	thread_data->stream = stream;
-
-	g_object_get (object,
-		      "callback", &thread_data->callback,
-		      "callback-data", &thread_data->callback_data,
-		      NULL);
-
-	thread_data->packet_resend = ARV_GV_STREAM_PACKET_RESEND_ALWAYS;
-	thread_data->packet_request_ratio = ARV_GV_STREAM_PACKET_REQUEST_RATIO_DEFAULT;
-	thread_data->packet_timeout_us = ARV_GV_STREAM_PACKET_TIMEOUT_US_DEFAULT;
-	thread_data->frame_retention_us = ARV_GV_STREAM_FRAME_RETENTION_US_DEFAULT;
-	thread_data->timestamp_tick_frequency = timestamp_tick_frequency;
-	thread_data->scps_packet_size = packet_size;
-	thread_data->use_packet_socket = (options & ARV_GV_STREAM_OPTION_PACKET_SOCKET_DISABLED) == 0;
-
-	thread_data->packet_id = 65300;
-
-	thread_data->histogram = arv_histogram_new (3, 100, 2000, 0);
-
-	arv_histogram_set_variable_name (thread_data->histogram, 0, "frame_retention");
-	arv_histogram_set_variable_name (thread_data->histogram, 1, "packet_time");
-	arv_histogram_set_variable_name (thread_data->histogram, 2, "inter_packet");
-
-	thread_data->socket_buffer_option = ARV_GV_STREAM_SOCKET_BUFFER_FIXED;
-
-	priv->thread_data = thread_data;
-
-	interface_address = g_inet_socket_address_get_address
-                (G_INET_SOCKET_ADDRESS (arv_gv_device_get_interface_address (gv_device)));
-	device_address = g_inet_socket_address_get_address
-                (G_INET_SOCKET_ADDRESS (arv_gv_device_get_device_address (gv_device)));
-
-	thread_data->socket = g_socket_new (G_SOCKET_FAMILY_IPV4, G_SOCKET_TYPE_DATAGRAM, G_SOCKET_PROTOCOL_UDP, NULL);
-	thread_data->device_address = g_object_ref (device_address);
-	thread_data->interface_address = g_object_ref (interface_address);
-	thread_data->interface_socket_address = g_inet_socket_address_new (interface_address, 0);
-	thread_data->device_socket_address = g_inet_socket_address_new (device_address, ARV_GVCP_PORT);
-	g_socket_bind (thread_data->socket, thread_data->interface_socket_address, FALSE, NULL);
-
-	local_address = G_INET_SOCKET_ADDRESS (g_socket_get_local_address (thread_data->socket, NULL));
-	thread_data->stream_port = g_inet_socket_address_get_port (local_address);
-	g_object_unref (local_address);
-
-	address_bytes = g_inet_address_to_bytes (interface_address);
-	arv_device_set_integer_feature_value (ARV_DEVICE (gv_device), "GevSCDA", g_htonl (*((guint32 *) address_bytes)), NULL);
-	arv_device_set_integer_feature_value (ARV_DEVICE (gv_device), "GevSCPHostPort", thread_data->stream_port, NULL);
-	thread_data->source_stream_port = arv_device_get_integer_feature_value (ARV_DEVICE (gv_device), "GevSCSP", NULL);
-
-	arv_info_stream ("[GvStream::stream_new] Destination stream port = %d", thread_data->stream_port);
-	arv_info_stream ("[GvStream::stream_new] Source stream port = %d", thread_data->source_stream_port);
-
-        arv_stream_declare_info (ARV_STREAM (gv_stream), "n_completed_buffers",
-                                 G_TYPE_UINT64, &thread_data->n_completed_buffers);
-        arv_stream_declare_info (ARV_STREAM (gv_stream), "n_failures",
-                                 G_TYPE_UINT64, &thread_data->n_failures);
-        arv_stream_declare_info (ARV_STREAM (gv_stream), "n_underruns",
-                                 G_TYPE_UINT64, &thread_data->n_underruns);
-        arv_stream_declare_info (ARV_STREAM (gv_stream), "n_timeouts",
-                                 G_TYPE_UINT64, &thread_data->n_timeouts);
-        arv_stream_declare_info (ARV_STREAM (gv_stream), "n_aborteds",
-                                 G_TYPE_UINT64, &thread_data->n_aborteds);
-        arv_stream_declare_info (ARV_STREAM (gv_stream), "n_missing_frames",
-                                 G_TYPE_UINT64, &thread_data->n_missing_frames);
-        arv_stream_declare_info (ARV_STREAM (gv_stream), "n_size_mismatch_errors",
-                                 G_TYPE_UINT64, &thread_data->n_size_mismatch_errors);
-        arv_stream_declare_info (ARV_STREAM (gv_stream), "n_received_packets",
-                                 G_TYPE_UINT64, &thread_data->n_received_packets);
-        arv_stream_declare_info (ARV_STREAM (gv_stream), "n_missing_packets",
-                                 G_TYPE_UINT64, &thread_data->n_missing_packets);
-        arv_stream_declare_info (ARV_STREAM (gv_stream), "n_error_packets",
-                                 G_TYPE_UINT64, &thread_data->n_error_packets);
-        arv_stream_declare_info (ARV_STREAM (gv_stream), "n_ignored_packets",
-                                 G_TYPE_UINT64, &thread_data->n_ignored_packets);
-        arv_stream_declare_info (ARV_STREAM (gv_stream), "n_resend_requests",
-                                 G_TYPE_UINT64, &thread_data->n_resend_requests);
-        arv_stream_declare_info (ARV_STREAM (gv_stream), "n_resent_packets",
-                                 G_TYPE_UINT64, &thread_data->n_resent_packets);
-        arv_stream_declare_info (ARV_STREAM (gv_stream), "n_resend_ratio_reached",
-                                 G_TYPE_UINT64, &thread_data->n_resend_ratio_reached);
-        arv_stream_declare_info (ARV_STREAM (gv_stream), "n_resend_disabled",
-                                 G_TYPE_UINT64, &thread_data->n_resend_disabled);
-        arv_stream_declare_info (ARV_STREAM (gv_stream), "n_duplicated_packets",
-                                 G_TYPE_UINT64, &thread_data->n_duplicated_packets);
-        arv_stream_declare_info (ARV_STREAM (gv_stream), "n_transferred_bytes",
-                                 G_TYPE_UINT64, &thread_data->n_transferred_bytes);
-        arv_stream_declare_info (ARV_STREAM (gv_stream), "n_ignored_bytes",
-                                 G_TYPE_UINT64, &thread_data->n_ignored_bytes);
-
-	arv_gv_stream_start_thread (ARV_STREAM (gv_stream));
-}
-
 /* ArvStream implementation */
 
 /**
@@ -1354,6 +1223,9 @@ arv_gv_stream_set_property (GObject * object, guint prop_id,
 		case ARV_GV_STREAM_PROPERTY_PACKET_REQUEST_RATIO:
 			thread_data->packet_request_ratio = g_value_get_double (value);
 			break;
+		case ARV_GV_STREAM_PROPERTY_INITIAL_PACKET_TIMEOUT:
+			thread_data->initial_packet_timeout_us = g_value_get_uint (value);
+			break;
 		case ARV_GV_STREAM_PROPERTY_PACKET_TIMEOUT:
 			thread_data->packet_timeout_us = g_value_get_uint (value);
 			break;
@@ -1388,6 +1260,9 @@ arv_gv_stream_get_property (GObject * object, guint prop_id,
 		case ARV_GV_STREAM_PROPERTY_PACKET_REQUEST_RATIO:
 			g_value_set_double (value, thread_data->packet_request_ratio);
 			break;
+		case ARV_GV_STREAM_PROPERTY_INITIAL_PACKET_TIMEOUT:
+			g_value_set_uint (value, thread_data->initial_packet_timeout_us);
+			break;
 		case ARV_GV_STREAM_PROPERTY_PACKET_TIMEOUT:
 			g_value_set_uint (value, thread_data->packet_timeout_us);
 			break;
@@ -1403,6 +1278,130 @@ arv_gv_stream_get_property (GObject * object, guint prop_id,
 static void
 arv_gv_stream_init (ArvGvStream *gv_stream)
 {
+	ArvGvStreamPrivate *priv = arv_gv_stream_get_instance_private (gv_stream);
+
+	priv->thread_data = g_new0 (ArvGvStreamThreadData, 1);
+}
+
+static void
+arv_gv_stream_constructed (GObject *object)
+{
+	ArvStream *stream = ARV_STREAM (object);
+	ArvGvStream *gv_stream = ARV_GV_STREAM (object);
+	ArvGvStreamPrivate *priv = arv_gv_stream_get_instance_private (ARV_GV_STREAM (stream));
+	ArvGvStreamOption options;
+	g_autoptr (ArvGvDevice) gv_device = NULL;
+	GInetAddress *interface_address;
+	GInetAddress *device_address;
+	guint64 timestamp_tick_frequency;
+	const guint8 *address_bytes;
+	GInetSocketAddress *local_address;
+	guint packet_size;
+
+	G_OBJECT_CLASS (arv_gv_stream_parent_class)->constructed (object);
+
+	g_object_get (object, "device", &gv_device, NULL);
+
+	timestamp_tick_frequency = arv_gv_device_get_timestamp_tick_frequency (gv_device, NULL);
+	options = arv_gv_device_get_stream_options (gv_device);
+
+	packet_size = arv_gv_device_get_packet_size (gv_device, NULL);
+	if (packet_size <= ARV_GVSP_PACKET_PROTOCOL_OVERHEAD) {
+		arv_gv_device_set_packet_size (gv_device, ARV_GV_DEVICE_GVSP_PACKET_SIZE_DEFAULT, NULL);
+		arv_info_device ("[GvStream::stream_new] Packet size set to default value (%d)",
+				  ARV_GV_DEVICE_GVSP_PACKET_SIZE_DEFAULT);
+	}
+
+	packet_size = arv_gv_device_get_packet_size (gv_device, NULL);
+	arv_info_device ("[GvStream::stream_new] Packet size = %d byte(s)", packet_size);
+
+	if (packet_size <= ARV_GVSP_PACKET_PROTOCOL_OVERHEAD) {
+		arv_stream_take_init_error (stream, g_error_new (ARV_DEVICE_ERROR, ARV_DEVICE_ERROR_PROTOCOL_ERROR,
+								 "Invalid packet size (%d byte(s))", packet_size));
+		return;
+	}
+
+	priv->thread_data->stream = stream;
+
+	g_object_get (object,
+		      "callback", &priv->thread_data->callback,
+		      "callback-data", &priv->thread_data->callback_data,
+		      NULL);
+
+	priv->thread_data->timestamp_tick_frequency = timestamp_tick_frequency;
+	priv->thread_data->scps_packet_size = packet_size;
+	priv->thread_data->use_packet_socket = (options & ARV_GV_STREAM_OPTION_PACKET_SOCKET_DISABLED) == 0;
+
+	priv->thread_data->packet_id = 65300;
+
+	priv->thread_data->histogram = arv_histogram_new (3, 100, 2000, 0);
+
+	arv_histogram_set_variable_name (priv->thread_data->histogram, 0, "frame_retention");
+	arv_histogram_set_variable_name (priv->thread_data->histogram, 1, "packet_time");
+	arv_histogram_set_variable_name (priv->thread_data->histogram, 2, "inter_packet");
+
+	interface_address = g_inet_socket_address_get_address
+                (G_INET_SOCKET_ADDRESS (arv_gv_device_get_interface_address (gv_device)));
+	device_address = g_inet_socket_address_get_address
+                (G_INET_SOCKET_ADDRESS (arv_gv_device_get_device_address (gv_device)));
+
+	priv->thread_data->socket = g_socket_new (G_SOCKET_FAMILY_IPV4, G_SOCKET_TYPE_DATAGRAM, G_SOCKET_PROTOCOL_UDP, NULL);
+	priv->thread_data->device_address = g_object_ref (device_address);
+	priv->thread_data->interface_address = g_object_ref (interface_address);
+	priv->thread_data->interface_socket_address = g_inet_socket_address_new (interface_address, 0);
+	priv->thread_data->device_socket_address = g_inet_socket_address_new (device_address, ARV_GVCP_PORT);
+	g_socket_bind (priv->thread_data->socket, priv->thread_data->interface_socket_address, FALSE, NULL);
+
+	local_address = G_INET_SOCKET_ADDRESS (g_socket_get_local_address (priv->thread_data->socket, NULL));
+	priv->thread_data->stream_port = g_inet_socket_address_get_port (local_address);
+	g_object_unref (local_address);
+
+	address_bytes = g_inet_address_to_bytes (interface_address);
+	arv_device_set_integer_feature_value (ARV_DEVICE (gv_device), "GevSCDA", g_htonl (*((guint32 *) address_bytes)), NULL);
+	arv_device_set_integer_feature_value (ARV_DEVICE (gv_device), "GevSCPHostPort", priv->thread_data->stream_port, NULL);
+	priv->thread_data->source_stream_port = arv_device_get_integer_feature_value (ARV_DEVICE (gv_device), "GevSCSP", NULL);
+
+	arv_info_stream ("[GvStream::stream_new] Destination stream port = %d", priv->thread_data->stream_port);
+	arv_info_stream ("[GvStream::stream_new] Source stream port = %d", priv->thread_data->source_stream_port);
+
+        arv_stream_declare_info (ARV_STREAM (gv_stream), "n_completed_buffers",
+                                 G_TYPE_UINT64, &priv->thread_data->n_completed_buffers);
+        arv_stream_declare_info (ARV_STREAM (gv_stream), "n_failures",
+                                 G_TYPE_UINT64, &priv->thread_data->n_failures);
+        arv_stream_declare_info (ARV_STREAM (gv_stream), "n_underruns",
+                                 G_TYPE_UINT64, &priv->thread_data->n_underruns);
+        arv_stream_declare_info (ARV_STREAM (gv_stream), "n_timeouts",
+                                 G_TYPE_UINT64, &priv->thread_data->n_timeouts);
+        arv_stream_declare_info (ARV_STREAM (gv_stream), "n_aborteds",
+                                 G_TYPE_UINT64, &priv->thread_data->n_aborteds);
+        arv_stream_declare_info (ARV_STREAM (gv_stream), "n_missing_frames",
+                                 G_TYPE_UINT64, &priv->thread_data->n_missing_frames);
+        arv_stream_declare_info (ARV_STREAM (gv_stream), "n_size_mismatch_errors",
+                                 G_TYPE_UINT64, &priv->thread_data->n_size_mismatch_errors);
+        arv_stream_declare_info (ARV_STREAM (gv_stream), "n_received_packets",
+                                 G_TYPE_UINT64, &priv->thread_data->n_received_packets);
+        arv_stream_declare_info (ARV_STREAM (gv_stream), "n_missing_packets",
+                                 G_TYPE_UINT64, &priv->thread_data->n_missing_packets);
+        arv_stream_declare_info (ARV_STREAM (gv_stream), "n_error_packets",
+                                 G_TYPE_UINT64, &priv->thread_data->n_error_packets);
+        arv_stream_declare_info (ARV_STREAM (gv_stream), "n_ignored_packets",
+                                 G_TYPE_UINT64, &priv->thread_data->n_ignored_packets);
+        arv_stream_declare_info (ARV_STREAM (gv_stream), "n_resend_requests",
+                                 G_TYPE_UINT64, &priv->thread_data->n_resend_requests);
+        arv_stream_declare_info (ARV_STREAM (gv_stream), "n_resent_packets",
+                                 G_TYPE_UINT64, &priv->thread_data->n_resent_packets);
+        arv_stream_declare_info (ARV_STREAM (gv_stream), "n_resend_ratio_reached",
+                                 G_TYPE_UINT64, &priv->thread_data->n_resend_ratio_reached);
+        arv_stream_declare_info (ARV_STREAM (gv_stream), "n_resend_disabled",
+                                 G_TYPE_UINT64, &priv->thread_data->n_resend_disabled);
+        arv_stream_declare_info (ARV_STREAM (gv_stream), "n_duplicated_packets",
+                                 G_TYPE_UINT64, &priv->thread_data->n_duplicated_packets);
+        arv_stream_declare_info (ARV_STREAM (gv_stream), "n_transferred_bytes",
+                                 G_TYPE_UINT64, &priv->thread_data->n_transferred_bytes);
+        arv_stream_declare_info (ARV_STREAM (gv_stream), "n_ignored_bytes",
+                                 G_TYPE_UINT64, &priv->thread_data->n_ignored_bytes);
+
+	arv_gv_stream_start_thread (ARV_STREAM (gv_stream));
 }
 
 static void
@@ -1490,36 +1489,82 @@ arv_gv_stream_class_init (ArvGvStreamClass *gv_stream_class)
 	stream_class->start_thread = arv_gv_stream_start_thread;
 	stream_class->stop_thread = arv_gv_stream_stop_thread;
 
+        /**
+         * ArvGvStream:socket-buffer:
+         *
+         * Incoming socket buffer policy.
+         */
 	g_object_class_install_property (
 		object_class, ARV_GV_STREAM_PROPERTY_SOCKET_BUFFER,
 		g_param_spec_enum ("socket-buffer", "Socket buffer",
 				   "Socket buffer behaviour",
 				   ARV_TYPE_GV_STREAM_SOCKET_BUFFER,
-				   ARV_GV_STREAM_SOCKET_BUFFER_AUTO,
-				   G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)
+				   ARV_GV_STREAM_SOCKET_BUFFER_FIXED,
+				  G_PARAM_CONSTRUCT |  G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)
 		);
+        /**
+         * ArvGvStream:socket-buffer-size:
+         *
+         * Size in bytes of the incoming socket buffer. A greater value helps to lower the number of missings packets,
+         * as the expense of an increased memory usage.
+         */
 	g_object_class_install_property (
 		object_class, ARV_GV_STREAM_PROPERTY_SOCKET_BUFFER_SIZE,
 		g_param_spec_int ("socket-buffer-size", "Socket buffer size",
 				  "Socket buffer size, in bytes",
 				  -1, G_MAXINT, 0,
-				  G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)
+				  G_PARAM_CONSTRUCT | G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)
 		);
+        /**
+         * ArvGvStream:packet-resend:
+         *
+         * Packet resend policy. This only applies if the device supports packet resend.
+         */
 	g_object_class_install_property (
 		object_class, ARV_GV_STREAM_PROPERTY_PACKET_RESEND,
 		g_param_spec_enum ("packet-resend", "Packet resend",
 				   "Packet resend behaviour",
 				   ARV_TYPE_GV_STREAM_PACKET_RESEND,
 				   ARV_GV_STREAM_PACKET_RESEND_ALWAYS,
-				   G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)
+				   G_PARAM_CONSTRUCT | G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)
 		);
+        /**
+         * ArvGvStream:packet-request-ratio:
+         *
+         * Maximum number of packet resend requests for a given frame, as a percentage of the number of packets per
+         * frame.
+         */
 	g_object_class_install_property (
 		object_class, ARV_GV_STREAM_PROPERTY_PACKET_REQUEST_RATIO,
 		g_param_spec_double ("packet-request-ratio", "Packet request ratio",
 				     "Packet resend request limit as a percentage of frame packet number",
 				     0.0, 2.0, ARV_GV_STREAM_PACKET_REQUEST_RATIO_DEFAULT,
-				     G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)
+				     G_PARAM_CONSTRUCT | G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)
 		);
+        /**
+         * ArvGvStream:initial-packet-timeout:
+         *
+         * Delay before asking for a packet resend after the packet was detected missing for the first time. The reason
+         * for this delay is, depending on the network topology, stream packets are not always received in increasing id
+         * order. As the missing packet detection happens at each received packet, by verifying if each previous packet
+         * has been received, we could emit useless packet resend requests if they are not ordered.
+         *
+         * Since: 0.8.15
+         */
+	g_object_class_install_property (
+		object_class, ARV_GV_STREAM_PROPERTY_INITIAL_PACKET_TIMEOUT,
+		g_param_spec_uint ("initial-packet-timeout", "Initial packet timeout",
+				   "Initial packet timeout, in µs",
+				   0,
+				   G_MAXUINT,
+				   ARV_GV_STREAM_INITIAL_PACKET_TIMEOUT_US_DEFAULT,
+				   G_PARAM_CONSTRUCT | G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)
+		);
+        /**
+         * ArvGvStream:packet-timeout:
+         *
+         * Timeout while waiting for a packet after a resend request, before asking again.
+         */
 	g_object_class_install_property (
 		object_class, ARV_GV_STREAM_PROPERTY_PACKET_TIMEOUT,
 		g_param_spec_uint ("packet-timeout", "Packet timeout",
@@ -1527,8 +1572,14 @@ arv_gv_stream_class_init (ArvGvStreamClass *gv_stream_class)
 				   0,
 				   G_MAXUINT,
 				   ARV_GV_STREAM_PACKET_TIMEOUT_US_DEFAULT,
-				   G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)
+				   G_PARAM_CONSTRUCT | G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)
 		);
+        /**
+         * ArvGvStream:frame-retention:
+         *
+         * Amount of time Aravis is wating for frame completion after the last packet is received. A greater value will
+         * also increase the maximum frame latency in case of missing packets.
+         */
 	g_object_class_install_property (
 		object_class, ARV_GV_STREAM_PROPERTY_FRAME_RETENTION,
 		g_param_spec_uint ("frame-retention", "Frame retention",
@@ -1536,6 +1587,6 @@ arv_gv_stream_class_init (ArvGvStreamClass *gv_stream_class)
 				   0,
 				   G_MAXUINT,
 				   ARV_GV_STREAM_FRAME_RETENTION_US_DEFAULT,
-				   G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)
+				   G_PARAM_CONSTRUCT | G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)
 		);
 }

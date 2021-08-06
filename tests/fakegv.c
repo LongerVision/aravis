@@ -228,7 +228,7 @@ main (int argc, char *argv[])
 
 	arv_set_fake_camera_genicam_filename (GENICAM_FILENAME);
 
-	simulator = arv_gv_fake_camera_new ("lo", "GVTest");
+	simulator = arv_gv_fake_camera_new ("127.0.0.1", "GVTest");
 	g_assert (ARV_IS_GV_FAKE_CAMERA (simulator));
 
 	camera = arv_camera_new ("Aravis-GVTest", NULL);
