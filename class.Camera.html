@@ -1,13 +1,7 @@
 <!--
-SPDX-FileCopyrightText: 2021 GNOME Foundation
+SPDX-FileCopyrightText: Aravis Project Team
 
-SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
--->
-
-<!--
-SPDX-FileCopyrightText: 2021 GNOME Foundation
-
-SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
+SPDX-License-Identifier: LGPL-2.1-or-later
 -->
 
 <!DOCTYPE html>
@@ -25,7 +19,7 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
   <meta property="og:image:width" content="256"/>
   <meta property="og:image:height" content="256"/>
   <meta property="og:image:secure_url" content="aravis.svg"/>
-  <meta property="og:image:alt" content="Aravis-0.8"/>
+  <meta property="og:image:alt" content="Aravis-0.10"/>
   
 
   
@@ -57,7 +51,6 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
   <script src="search.js"></script>
   
   <script src="main.js"></script>
-  <!--[if IE]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
 </head>
 
 <body>
@@ -78,9 +71,9 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
       
       <div class="section namespace">
         <h3><a href="index.html">Aravis</a></h3>
-        <p>API Version: 0.8</p>
+        <p>API Version: 0.10</p>
         
-        <p>Library Version: 0.8.22</p>
+        <p>Library Version: 0.9.0</p>
         
       </div>
       
@@ -92,6 +85,7 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
 </div>
 
 
+  
 <div class="section">
   <h5>Constructors</h5>
   <div class="links">
@@ -105,8 +99,10 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
 
 
 
+  
 
 
+  
 <div class="section">
   <h5>Instance methods</h5>
   <div class="links">
@@ -123,11 +119,19 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
   
     <a class="method" href="method.Camera.create_stream.html">create_stream</a>
   
+    <a class="method" href="method.Camera.create_stream_full.html">create_stream_full</a>
+  
+    <a class="method" href="method.Camera.dup_available_black_levels.html">dup_available_black_levels</a>
+  
+    <a class="method" href="method.Camera.dup_available_components.html">dup_available_components</a>
+  
     <a class="method" href="method.Camera.dup_available_enumerations.html">dup_available_enumerations</a>
   
     <a class="method" href="method.Camera.dup_available_enumerations_as_display_names.html">dup_available_enumerations_as_display_names</a>
   
     <a class="method" href="method.Camera.dup_available_enumerations_as_strings.html">dup_available_enumerations_as_strings</a>
+  
+    <a class="method" href="method.Camera.dup_available_gains.html">dup_available_gains</a>
   
     <a class="method" href="method.Camera.dup_available_pixel_formats.html">dup_available_pixel_formats</a>
   
@@ -138,6 +142,8 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
     <a class="method" href="method.Camera.dup_available_trigger_sources.html">dup_available_trigger_sources</a>
   
     <a class="method" href="method.Camera.dup_available_triggers.html">dup_available_triggers</a>
+  
+    <a class="method" href="method.Camera.dup_register.html">dup_register</a>
   
     <a class="method" href="method.Camera.execute_command.html">execute_command</a>
   
@@ -171,6 +177,10 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
   
     <a class="method" href="method.Camera.get_exposure_time_bounds.html">get_exposure_time_bounds</a>
   
+    <a class="method" href="method.Camera.get_exposure_time_representation.html">get_exposure_time_representation</a>
+  
+    <a class="method" href="method.Camera.get_feature_representation.html">get_feature_representation</a>
+  
     <a class="method" href="method.Camera.get_float.html">get_float</a>
   
     <a class="method" href="method.Camera.get_float_bounds.html">get_float_bounds</a>
@@ -190,6 +200,8 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
     <a class="method" href="method.Camera.get_gain_auto.html">get_gain_auto</a>
   
     <a class="method" href="method.Camera.get_gain_bounds.html">get_gain_bounds</a>
+  
+    <a class="method" href="method.Camera.get_gain_representation.html">get_gain_representation</a>
   
     <a class="method" href="method.Camera.get_height_bounds.html">get_height_bounds</a>
   
@@ -243,19 +255,37 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
   
     <a class="method" href="method.Camera.gv_get_current_stream_channel.html">gv_get_current_stream_channel</a>
   
+    <a class="method" href="method.Camera.gv_get_ip_configuration_mode.html">gv_get_ip_configuration_mode</a>
+  
+    <a class="method" href="method.Camera.gv_get_multipart.html">gv_get_multipart</a>
+  
+    <a class="method" href="method.Camera.gv_get_n_network_interfaces.html">gv_get_n_network_interfaces</a>
+  
     <a class="method" href="method.Camera.gv_get_n_stream_channels.html">gv_get_n_stream_channels</a>
   
     <a class="method" href="method.Camera.gv_get_packet_delay.html">gv_get_packet_delay</a>
   
     <a class="method" href="method.Camera.gv_get_packet_size.html">gv_get_packet_size</a>
   
+    <a class="method" href="method.Camera.gv_get_persistent_ip.html">gv_get_persistent_ip</a>
+  
+    <a class="method" href="method.Camera.gv_is_multipart_supported.html">gv_is_multipart_supported</a>
+  
     <a class="method" href="method.Camera.gv_select_stream_channel.html">gv_select_stream_channel</a>
+  
+    <a class="method" href="method.Camera.gv_set_ip_configuration_mode.html">gv_set_ip_configuration_mode</a>
+  
+    <a class="method" href="method.Camera.gv_set_multipart.html">gv_set_multipart</a>
   
     <a class="method" href="method.Camera.gv_set_packet_delay.html">gv_set_packet_delay</a>
   
     <a class="method" href="method.Camera.gv_set_packet_size.html">gv_set_packet_size</a>
   
     <a class="method" href="method.Camera.gv_set_packet_size_adjustment.html">gv_set_packet_size_adjustment</a>
+  
+    <a class="method" href="method.Camera.gv_set_persistent_ip.html">gv_set_persistent_ip</a>
+  
+    <a class="method" href="method.Camera.gv_set_persistent_ip_from_string.html">gv_set_persistent_ip_from_string</a>
   
     <a class="method" href="method.Camera.gv_set_stream_options.html">gv_set_stream_options</a>
   
@@ -265,6 +295,8 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
   
     <a class="method" href="method.Camera.is_black_level_available.html">is_black_level_available</a>
   
+    <a class="method" href="method.Camera.is_component_available.html">is_component_available</a>
+  
     <a class="method" href="method.Camera.is_enumeration_entry_available.html">is_enumeration_entry_available</a>
   
     <a class="method" href="method.Camera.is_exposure_auto_available.html">is_exposure_auto_available</a>
@@ -273,17 +305,31 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
   
     <a class="method" href="method.Camera.is_feature_available.html">is_feature_available</a>
   
+    <a class="method" href="method.Camera.is_feature_implemented.html">is_feature_implemented</a>
+  
     <a class="method" href="method.Camera.is_frame_rate_available.html">is_frame_rate_available</a>
   
     <a class="method" href="method.Camera.is_gain_auto_available.html">is_gain_auto_available</a>
   
     <a class="method" href="method.Camera.is_gain_available.html">is_gain_available</a>
   
+    <a class="method" href="method.Camera.is_gentl_device.html">is_gentl_device</a>
+  
     <a class="method" href="method.Camera.is_gv_device.html">is_gv_device</a>
+  
+    <a class="method" href="method.Camera.is_region_offset_available.html">is_region_offset_available</a>
   
     <a class="method" href="method.Camera.is_software_trigger_supported.html">is_software_trigger_supported</a>
   
     <a class="method" href="method.Camera.is_uv_device.html">is_uv_device</a>
+  
+    <a class="method" href="method.Camera.select_and_enable_component.html">select_and_enable_component</a>
+  
+    <a class="method" href="method.Camera.select_black_level.html">select_black_level</a>
+  
+    <a class="method" href="method.Camera.select_component.html">select_component</a>
+  
+    <a class="method" href="method.Camera.select_gain.html">select_gain</a>
   
     <a class="method" href="method.Camera.set_access_check_policy.html">set_access_check_policy</a>
   
@@ -315,6 +361,8 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
   
     <a class="method" href="method.Camera.set_frame_rate.html">set_frame_rate</a>
   
+    <a class="method" href="method.Camera.set_frame_rate_enable.html">set_frame_rate_enable</a>
+  
     <a class="method" href="method.Camera.set_gain.html">set_gain</a>
   
     <a class="method" href="method.Camera.set_gain_auto.html">set_gain_auto</a>
@@ -328,6 +376,8 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
     <a class="method" href="method.Camera.set_range_check_policy.html">set_range_check_policy</a>
   
     <a class="method" href="method.Camera.set_region.html">set_region</a>
+  
+    <a class="method" href="method.Camera.set_register.html">set_register</a>
   
     <a class="method" href="method.Camera.set_register_cache_policy.html">set_register_cache_policy</a>
   
@@ -358,6 +408,7 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
 
 
 
+  
 <div class="section">
   <h5>Properties</h5>
   <div class="links">
@@ -371,14 +422,21 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
 
 
 
+  
+
+
+  
+
+
+  
 
 
 
-
-
-
+      <div class="section generator">
+        <p>Generated by <a href="https://gitlab.gnome.org/GNOME/gi-docgen">gi-docgen</a> 2023.3</p>
+      </div>
     </nav>
-    
+
     <button id="btn-to-top" class="hidden"><span class="up-arrow"></span></button>
 
     
@@ -390,17 +448,22 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
 
   <section>
     <summary>
+      <div class="docblock">
+        <p><span class="emblem available-next" title="This type will be available in the next stable release">unstable</span>&nbsp;<span class="emblem available">since: 0.10</span></p>
+      </div>
+
       <div class="toggle-wrapper">
         <h4 id="description" style="display:flex;">
           Description
           <a href="#description" class="anchor"></a>
           
-          <a class="srclink" title="go to source location" href="https://github.com/AravisProject/aravis/tree/src/arvcamera.c#L23">[src]</a>
+          <a class="srclink" title="go to source location" href="https://github.com/AravisProject/aravis/blob/main/src/arvcamera.c#L23">[src]</a>
           
         </h4>
 
-        <pre><code>class Aravis.Camera : GObject.Object {
-  parent_instance: GObject
+        <pre><code>class Aravis.Camera : GObject.Object
+  implements Gio.Initable {
+  /* No available fields */
 }</pre></code>
 
         <div class="docblock">
@@ -410,11 +473,11 @@ and <a href="class.Gc.html"><code>ArvGc</code></a> for a more advanced use of th
         </div>
 
         <div class="docblock">
-          <table class="attributes">
-            
-            
-            
-          </table>
+          
+          
+          <p>Available since: 0.10</p>
+          
+          
         </div>
 
         
@@ -474,23 +537,23 @@ and <a href="class.Gc.html"><code>ArvGc</code></a> for a more advanced use of th
       
         <div class="">
           <h6><a href="ctor.Camera.new.html">arv_camera_new</a></h6>
-
           <div class="docblock">
             <p>Creates a new <code>ArvCamera</code>. If <code>name</code> is null, it will instantiate the
 first available&nbsp;camera.</p>
           </div>
-
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
           <h6><a href="ctor.Camera.new_with_device.html">arv_camera_new_with_device</a></h6>
-
           <div class="docblock">
             <p>Creates a new <code>ArvCamera</code>, using <code>device</code> as its internal device&nbsp;object.</p>
           </div>
-
-          <div class="docblock"><p>Available since: 0.8.6</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.6</span></p>
+          </div>
         </div>
       
       </div>
@@ -513,7 +576,9 @@ first available&nbsp;camera.</p>
           <div class="docblock">
             <p>Aborts video stream&nbsp;acquisition.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -521,7 +586,9 @@ first available&nbsp;camera.</p>
           <div class="docblock">
             <p>Acquire one image&nbsp;buffer.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -529,7 +596,9 @@ first available&nbsp;camera.</p>
           <div class="docblock">
             No description available.
           </div>
-          <div class="docblock"><p>Available since: 0.8.8</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.8</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -537,7 +606,9 @@ first available&nbsp;camera.</p>
           <div class="docblock">
             <p>Disables all&nbsp;triggers.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -545,16 +616,51 @@ first available&nbsp;camera.</p>
           <div class="docblock">
             <p>Creates a new <code>ArvChunkParser</code> object, used for the extraction of chunk data from <code>ArvBuffer</code>.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.4.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.4.0</span></p>
+          </div>
         </div>
       
         <div class="">
           <h6><a href="method.Camera.create_stream.html">arv_camera_create_stream</a></h6>
           <div class="docblock">
-            <p>Creates a new <code>ArvStream</code> for video stream handling. See
+            <p>Creates a new <code>ArvStream</code> for video stream reception. See
 <code>ArvStreamCallback</code> for details regarding the callback&nbsp;function.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.2.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.2.0</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Camera.create_stream_full.html">arv_camera_create_stream_full</a></h6>
+          <div class="docblock">
+            <p>Creates a new <code>ArvStream</code> for video stream reception. See
+<code>ArvStreamCallback</code> for details regarding the callback&nbsp;function.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.23</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Camera.dup_available_black_levels.html">arv_camera_dup_available_black_levels</a></h6>
+          <div class="docblock">
+            <p>Retrieves the list of all available black level selectors as&nbsp;strings.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.27</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Camera.dup_available_components.html">arv_camera_dup_available_components</a></h6>
+          <div class="docblock">
+            <p>Retrieves the list of available&nbsp;components.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.23</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -562,7 +668,9 @@ first available&nbsp;camera.</p>
           <div class="docblock">
             <p>Get all the available values of <code>feature</code>, as 64 bit&nbsp;integers.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -570,7 +678,9 @@ first available&nbsp;camera.</p>
           <div class="docblock">
             <p>Get display names of all the available entries of <code>feature</code>.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -578,7 +688,19 @@ first available&nbsp;camera.</p>
           <div class="docblock">
             <p>Get all the available values of <code>feature</code>, as&nbsp;strings.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Camera.dup_available_gains.html">arv_camera_dup_available_gains</a></h6>
+          <div class="docblock">
+            <p>Retrieves the list of all available gain selectors as&nbsp;strings.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.27</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -586,7 +708,9 @@ first available&nbsp;camera.</p>
           <div class="docblock">
             <p>Retrieves the list of all available pixel&nbsp;formats.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -595,7 +719,9 @@ first available&nbsp;camera.</p>
             <p>Retrieves the list of all available pixel formats as display names.
 In general, these human-readable strings cannot be used as&nbsp;settings.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -603,7 +729,9 @@ In general, these human-readable strings cannot be used as&nbsp;settings.</p>
           <div class="docblock">
             <p>Retrieves the list of all available pixel formats as&nbsp;strings.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -611,7 +739,9 @@ In general, these human-readable strings cannot be used as&nbsp;settings.</p>
           <div class="docblock">
             <p>Gets the list of all available trigger&nbsp;sources.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -619,7 +749,19 @@ In general, these human-readable strings cannot be used as&nbsp;settings.</p>
           <div class="docblock">
             <p>Gets a list of all available triggers: FrameStart, ExposureActive,&nbsp;etc&#8230;</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Camera.dup_register.html">arv_camera_dup_register</a></h6>
+          <div class="docblock">
+            No description available.
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available-next" title="This method will be available in the next stable release">unstable</span>&nbsp;<span class="emblem available">since: 0.10.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -627,7 +769,9 @@ In general, these human-readable strings cannot be used as&nbsp;settings.</p>
           <div class="docblock">
             <p>Execute a Genicam&nbsp;command.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -635,7 +779,9 @@ In general, these human-readable strings cannot be used as&nbsp;settings.</p>
           <div class="docblock">
             No description available.
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -643,7 +789,9 @@ In general, these human-readable strings cannot be used as&nbsp;settings.</p>
           <div class="docblock">
             <p>Retrieves binning in both&nbsp;directions.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -651,7 +799,9 @@ In general, these human-readable strings cannot be used as&nbsp;settings.</p>
           <div class="docblock">
             No description available.
           </div>
-          <div class="docblock"><p>Available since: 0.8.19</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.19</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -659,7 +809,9 @@ In general, these human-readable strings cannot be used as&nbsp;settings.</p>
           <div class="docblock">
             No description available.
           </div>
-          <div class="docblock"><p>Available since: 0.8.19</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.19</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -667,7 +819,9 @@ In general, these human-readable strings cannot be used as&nbsp;settings.</p>
           <div class="docblock">
             <p>Retrieves blacklevel&nbsp;bounds.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.19</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.19</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -675,7 +829,9 @@ In general, these human-readable strings cannot be used as&nbsp;settings.</p>
           <div class="docblock">
             No description available.
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -683,7 +839,9 @@ In general, these human-readable strings cannot be used as&nbsp;settings.</p>
           <div class="docblock">
             No description available.
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -691,7 +849,9 @@ In general, these human-readable strings cannot be used as&nbsp;settings.</p>
           <div class="docblock">
             <p>Check wether chunk data mode is active. Please see&nbsp;arv_camera_set_chunk_mode().</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -700,7 +860,9 @@ In general, these human-readable strings cannot be used as&nbsp;settings.</p>
             <p>Gets state of chunk data. Chunk data are be embedded in <code>ArvBuffer</code> only
 if chunk mode is active. Please see&nbsp;arv_camera_set_chunk_mode().</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -708,7 +870,9 @@ if chunk mode is active. Please see&nbsp;arv_camera_set_chunk_mode().</p>
           <div class="docblock">
             <p>Retrieves the <code>ArvDevice</code> object for more complete access to camera&nbsp;features.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.2.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.2.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -716,7 +880,9 @@ if chunk mode is active. Please see&nbsp;arv_camera_set_chunk_mode().</p>
           <div class="docblock">
             No description available.
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -724,7 +890,9 @@ if chunk mode is active. Please see&nbsp;arv_camera_set_chunk_mode().</p>
           <div class="docblock">
             No description available.
           </div>
-          <div class="docblock"><p>Available since: 0.8.8</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.8</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -732,7 +900,9 @@ if chunk mode is active. Please see&nbsp;arv_camera_set_chunk_mode().</p>
           <div class="docblock">
             No description available.
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -740,7 +910,9 @@ if chunk mode is active. Please see&nbsp;arv_camera_set_chunk_mode().</p>
           <div class="docblock">
             No description available.
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -748,7 +920,29 @@ if chunk mode is active. Please see&nbsp;arv_camera_set_chunk_mode().</p>
           <div class="docblock">
             <p>Retrieves exposure time bounds, in&nbsp;µs.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Camera.get_exposure_time_representation.html">arv_camera_get_exposure_time_representation</a></h6>
+          <div class="docblock">
+            No description available.
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available-next" title="This method will be available in the next stable release">unstable</span>&nbsp;<span class="emblem available">since: 0.10.0</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Camera.get_feature_representation.html">arv_camera_get_feature_representation</a></h6>
+          <div class="docblock">
+            No description available.
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available-next" title="This method will be available in the next stable release">unstable</span>&nbsp;<span class="emblem available">since: 0.10.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -756,7 +950,9 @@ if chunk mode is active. Please see&nbsp;arv_camera_set_chunk_mode().</p>
           <div class="docblock">
             No description available.
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -764,7 +960,9 @@ if chunk mode is active. Please see&nbsp;arv_camera_set_chunk_mode().</p>
           <div class="docblock">
             <p>Retrieves float feature&nbsp;bounds.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -772,7 +970,9 @@ if chunk mode is active. Please see&nbsp;arv_camera_set_chunk_mode().</p>
           <div class="docblock">
             No description available.
           </div>
-          <div class="docblock"><p>Available since: 0.8.16</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.16</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -780,7 +980,9 @@ if chunk mode is active. Please see&nbsp;arv_camera_set_chunk_mode().</p>
           <div class="docblock">
             No description available.
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -788,7 +990,9 @@ if chunk mode is active. Please see&nbsp;arv_camera_set_chunk_mode().</p>
           <div class="docblock">
             <p>Retrieves allowed range for frame&nbsp;count.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -796,7 +1000,9 @@ if chunk mode is active. Please see&nbsp;arv_camera_set_chunk_mode().</p>
           <div class="docblock">
             No description available.
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -804,7 +1010,9 @@ if chunk mode is active. Please see&nbsp;arv_camera_set_chunk_mode().</p>
           <div class="docblock">
             <p>Retrieves allowed range for&nbsp;framerate.</p>
           </div>
-          
+          <div class="docblock">
+            <p><span class="emblem available-next" title="This method will be available in the next stable release">unstable</span>&nbsp;<span class="emblem available">since: 0.10</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -812,7 +1020,9 @@ if chunk mode is active. Please see&nbsp;arv_camera_set_chunk_mode().</p>
           <div class="docblock">
             No description available.
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -820,7 +1030,9 @@ if chunk mode is active. Please see&nbsp;arv_camera_set_chunk_mode().</p>
           <div class="docblock">
             No description available.
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -828,7 +1040,19 @@ if chunk mode is active. Please see&nbsp;arv_camera_set_chunk_mode().</p>
           <div class="docblock">
             <p>Retrieves gain&nbsp;bounds.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Camera.get_gain_representation.html">arv_camera_get_gain_representation</a></h6>
+          <div class="docblock">
+            No description available.
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available-next" title="This method will be available in the next stable release">unstable</span>&nbsp;<span class="emblem available">since: 0.10.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -836,7 +1060,9 @@ if chunk mode is active. Please see&nbsp;arv_camera_set_chunk_mode().</p>
           <div class="docblock">
             <p>Retrieves the valid range for image&nbsp;height.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -844,7 +1070,9 @@ if chunk mode is active. Please see&nbsp;arv_camera_set_chunk_mode().</p>
           <div class="docblock">
             No description available.
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -852,7 +1080,9 @@ if chunk mode is active. Please see&nbsp;arv_camera_set_chunk_mode().</p>
           <div class="docblock">
             No description available.
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -860,7 +1090,9 @@ if chunk mode is active. Please see&nbsp;arv_camera_set_chunk_mode().</p>
           <div class="docblock">
             <p>Retrieves integer feature&nbsp;bounds.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -868,7 +1100,9 @@ if chunk mode is active. Please see&nbsp;arv_camera_set_chunk_mode().</p>
           <div class="docblock">
             No description available.
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -876,7 +1110,9 @@ if chunk mode is active. Please see&nbsp;arv_camera_set_chunk_mode().</p>
           <div class="docblock">
             No description available.
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -885,7 +1121,9 @@ if chunk mode is active. Please see&nbsp;arv_camera_set_chunk_mode().</p>
             <p>Retrieves the size needed for the storage of an image. This value is used
 for the creation of the stream&nbsp;buffers.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -893,7 +1131,9 @@ for the creation of the stream&nbsp;buffers.</p>
           <div class="docblock">
             No description available.
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -901,7 +1141,9 @@ for the creation of the stream&nbsp;buffers.</p>
           <div class="docblock">
             
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -909,7 +1151,9 @@ for the creation of the stream&nbsp;buffers.</p>
           <div class="docblock">
             <p>Retrieves the current region of&nbsp;interest.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -917,7 +1161,9 @@ for the creation of the stream&nbsp;buffers.</p>
           <div class="docblock">
             No description available.
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -925,7 +1171,9 @@ for the creation of the stream&nbsp;buffers.</p>
           <div class="docblock">
             No description available.
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -934,7 +1182,9 @@ for the creation of the stream&nbsp;buffers.</p>
             <p>Gets the trigger source. This function doesn&#8217;t check if the camera is configured
 to actually use this source as a&nbsp;trigger.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -942,7 +1192,9 @@ to actually use this source as a&nbsp;trigger.</p>
           <div class="docblock">
             No description available.
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -950,7 +1202,9 @@ to actually use this source as a&nbsp;trigger.</p>
           <div class="docblock">
             <p>Retrieves the valid range for image&nbsp;width.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -958,7 +1212,9 @@ to actually use this source as a&nbsp;trigger.</p>
           <div class="docblock">
             No description available.
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -966,7 +1222,9 @@ to actually use this source as a&nbsp;trigger.</p>
           <div class="docblock">
             <p>Retrieves the valid range for image horizontal&nbsp;binning.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -974,7 +1232,9 @@ to actually use this source as a&nbsp;trigger.</p>
           <div class="docblock">
             No description available.
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -982,7 +1242,9 @@ to actually use this source as a&nbsp;trigger.</p>
           <div class="docblock">
             <p>Retrieves the valid range for image horizontal&nbsp;offset.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -990,7 +1252,9 @@ to actually use this source as a&nbsp;trigger.</p>
           <div class="docblock">
             No description available.
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -998,7 +1262,9 @@ to actually use this source as a&nbsp;trigger.</p>
           <div class="docblock">
             <p>Retrieves the valid range for image vertical&nbsp;binning.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1006,7 +1272,9 @@ to actually use this source as a&nbsp;trigger.</p>
           <div class="docblock">
             No description available.
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1014,7 +1282,9 @@ to actually use this source as a&nbsp;trigger.</p>
           <div class="docblock">
             <p>Retrieves the valid range for image vertical&nbsp;offset.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1022,7 +1292,9 @@ to actually use this source as a&nbsp;trigger.</p>
           <div class="docblock">
             No description available.
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1033,7 +1305,9 @@ streaming, and set GevSCPSPacketSize value accordingly. This function relies
 on the GevSCPSFireTestPacket feature. If this feature is not available, the
 packet size will be set to a default value (1500&nbsp;bytes).</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1041,7 +1315,39 @@ packet size will be set to a default value (1500&nbsp;bytes).</p>
           <div class="docblock">
             No description available.
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Camera.gv_get_ip_configuration_mode.html">arv_camera_gv_get_ip_configuration_mode</a></h6>
+          <div class="docblock">
+            <p>Get the <span class="caps">IP</span> address configuration&nbsp;mode.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.22</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Camera.gv_get_multipart.html">arv_camera_gv_get_multipart</a></h6>
+          <div class="docblock">
+            No description available.
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.23</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Camera.gv_get_n_network_interfaces.html">arv_camera_gv_get_n_network_interfaces</a></h6>
+          <div class="docblock">
+            No description available.
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.25</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1049,7 +1355,9 @@ packet size will be set to a default value (1500&nbsp;bytes).</p>
           <div class="docblock">
             No description available.
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1057,7 +1365,9 @@ packet size will be set to a default value (1500&nbsp;bytes).</p>
           <div class="docblock">
             No description available.
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1065,7 +1375,29 @@ packet size will be set to a default value (1500&nbsp;bytes).</p>
           <div class="docblock">
             No description available.
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Camera.gv_get_persistent_ip.html">arv_camera_gv_get_persistent_ip</a></h6>
+          <div class="docblock">
+            <p>Get the persistent <span class="caps">IP</span> address setting of&nbsp;camera.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.22</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Camera.gv_is_multipart_supported.html">arv_camera_gv_is_multipart_supported</a></h6>
+          <div class="docblock">
+            No description available.
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.23</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1073,7 +1405,30 @@ packet size will be set to a default value (1500&nbsp;bytes).</p>
           <div class="docblock">
             <p>Select the current stream channel. Negative <code>channel_id</code> is&nbsp;ignored.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Camera.gv_set_ip_configuration_mode.html">arv_camera_gv_set_ip_configuration_mode</a></h6>
+          <div class="docblock">
+            <p>Sets the <span class="caps">IP</span> address configuration mode.
+Available modes are ARV_GV_IP_CONFIGURATION_MODE_DHCP, ARV_GV_IP_CONFIGURATION_MODE_PERSISTENT_IP,&nbsp;ARV_GV_IP_CONFIGURATION_MODE_LLA.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.22</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Camera.gv_set_multipart.html">arv_camera_gv_set_multipart</a></h6>
+          <div class="docblock">
+            <p>Control multipart payload&nbsp;support.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.23</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1083,7 +1438,9 @@ packet size will be set to a default value (1500&nbsp;bytes).</p>
 channel. This can be used as a crude flow-control mechanism if the application or the network
 infrastructure cannot keep up with the packets coming from the device. Negative <code>delay_ns</code> is&nbsp;ignored.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1092,7 +1449,9 @@ infrastructure cannot keep up with the packets coming from the device. Negative 
             <p>Specifies the stream packet size, in bytes, to send on the selected channel for a <span class="caps">GVSP</span> transmitter
 or specifies the maximum packet size supported by a <span class="caps">GVSP</span>&nbsp;receiver.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1100,7 +1459,29 @@ or specifies the maximum packet size supported by a <span class="caps">GVSP</spa
           <div class="docblock">
             <p>Sets the option for packet size adjustment that happens at stream object&nbsp;creation.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.3</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.3</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Camera.gv_set_persistent_ip.html">arv_camera_gv_set_persistent_ip</a></h6>
+          <div class="docblock">
+            <p>Sets the persistent <span class="caps">IP</span> address to&nbsp;camera.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.22</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Camera.gv_set_persistent_ip_from_string.html">arv_camera_gv_set_persistent_ip_from_string</a></h6>
+          <div class="docblock">
+            <p>Sets the persistent <span class="caps">IP</span> address to&nbsp;camera.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.22</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1109,7 +1490,9 @@ or specifies the maximum packet size supported by a <span class="caps">GVSP</spa
             <p>Sets the options used during stream object creation. These options mus be
 set before the call to&nbsp;arv_camera_create_stream().</p>
           </div>
-          <div class="docblock"><p>Available since: 0.6.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.6.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1117,7 +1500,9 @@ set before the call to&nbsp;arv_camera_create_stream().</p>
           <div class="docblock">
             No description available.
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1125,7 +1510,9 @@ set before the call to&nbsp;arv_camera_create_stream().</p>
           <div class="docblock">
             No description available.
           </div>
-          <div class="docblock"><p>Available since: 0.8.19</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.19</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1133,7 +1520,19 @@ set before the call to&nbsp;arv_camera_create_stream().</p>
           <div class="docblock">
             No description available.
           </div>
-          <div class="docblock"><p>Available since: 0.8.19</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.19</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Camera.is_component_available.html">arv_camera_is_component_available</a></h6>
+          <div class="docblock">
+            No description available.
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.25</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1141,7 +1540,9 @@ set before the call to&nbsp;arv_camera_create_stream().</p>
           <div class="docblock">
             No description available.
           </div>
-          <div class="docblock"><p>Available since: 0.8.17</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.17</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1149,7 +1550,9 @@ set before the call to&nbsp;arv_camera_create_stream().</p>
           <div class="docblock">
             No description available.
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1157,7 +1560,9 @@ set before the call to&nbsp;arv_camera_create_stream().</p>
           <div class="docblock">
             No description available.
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1165,7 +1570,19 @@ set before the call to&nbsp;arv_camera_create_stream().</p>
           <div class="docblock">
             No description available.
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Camera.is_feature_implemented.html">arv_camera_is_feature_implemented</a></h6>
+          <div class="docblock">
+            No description available.
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.23</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1173,7 +1590,9 @@ set before the call to&nbsp;arv_camera_create_stream().</p>
           <div class="docblock">
             No description available.
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1181,7 +1600,9 @@ set before the call to&nbsp;arv_camera_create_stream().</p>
           <div class="docblock">
             No description available.
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1189,7 +1610,19 @@ set before the call to&nbsp;arv_camera_create_stream().</p>
           <div class="docblock">
             No description available.
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Camera.is_gentl_device.html">arv_camera_is_gentl_device</a></h6>
+          <div class="docblock">
+            No description available.
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available-next" title="This method will be available in the next stable release">unstable</span>&nbsp;<span class="emblem available">since: 0.10.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1197,7 +1630,19 @@ set before the call to&nbsp;arv_camera_create_stream().</p>
           <div class="docblock">
             No description available.
           </div>
-          <div class="docblock"><p>Available since: 0.4.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.4.0</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Camera.is_region_offset_available.html">arv_camera_is_region_offset_available</a></h6>
+          <div class="docblock">
+            No description available.
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.22</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1205,7 +1650,9 @@ set before the call to&nbsp;arv_camera_create_stream().</p>
           <div class="docblock">
             No description available.
           </div>
-          <div class="docblock"><p>Available since: 0.8.17</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.17</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1213,7 +1660,49 @@ set before the call to&nbsp;arv_camera_create_stream().</p>
           <div class="docblock">
             No description available.
           </div>
-          <div class="docblock"><p>Available since: 0.6.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.6.0</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Camera.select_and_enable_component.html">arv_camera_select_and_enable_component</a></h6>
+          <div class="docblock">
+            <p>Select and enable the given&nbsp;component.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.23</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Camera.select_black_level.html">arv_camera_select_black_level</a></h6>
+          <div class="docblock">
+            <p>Configures Black Level Selector&nbsp;feature.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.27</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Camera.select_component.html">arv_camera_select_component</a></h6>
+          <div class="docblock">
+            <p>Select and enable or disable the given <code>component</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.25</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Camera.select_gain.html">arv_camera_select_gain</a></h6>
+          <div class="docblock">
+            <p>Configures Gain Selector&nbsp;feature.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.27</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1223,7 +1712,9 @@ set before the call to&nbsp;arv_camera_create_stream().</p>
 is checked using AccessMode properties. On some devices, it helps to avoid forbidden writes to registers that may put
 the device in a bad&nbsp;state.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.22</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.22</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1231,7 +1722,9 @@ the device in a bad&nbsp;state.</p>
           <div class="docblock">
             No description available.
           </div>
-          
+          <div class="docblock">
+            <p><span class="emblem available-next" title="This method will be available in the next stable release">unstable</span>&nbsp;<span class="emblem available">since: 0.10</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1240,7 +1733,9 @@ the device in a bad&nbsp;state.</p>
             <p>Defines binning in both directions. Not all cameras support this
 feature. Negative <code>dx</code> or <code>dy</code> values are&nbsp;ignored.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1248,7 +1743,9 @@ feature. Negative <code>dx</code> or <code>dy</code> values are&nbsp;ignored.</p
           <div class="docblock">
             No description available.
           </div>
-          <div class="docblock"><p>Available since: 0.8.19</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.19</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1256,7 +1753,9 @@ feature. Negative <code>dx</code> or <code>dy</code> values are&nbsp;ignored.</p
           <div class="docblock">
             <p>Configures automatic black level&nbsp;feature.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.19</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.19</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1264,7 +1763,9 @@ feature. Negative <code>dx</code> or <code>dy</code> values are&nbsp;ignored.</p
           <div class="docblock">
             <p>Set a boolean feature&nbsp;value.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1274,7 +1775,9 @@ feature. Negative <code>dx</code> or <code>dy</code> values are&nbsp;ignored.</p
 are appended to image data in <code>ArvBuffer</code>. A <code>ArvChunkParser</code> must be used in
 order to extract chunk&nbsp;data.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1283,7 +1786,9 @@ order to extract chunk&nbsp;data.</p>
             <p>Sets state of a chunk data. Chunk data are be embedded in <code>ArvBuffer</code> only
 if chunk mode is active. Please see&nbsp;arv_camera_set_chunk_mode().</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1292,7 +1797,9 @@ if chunk mode is active. Please see&nbsp;arv_camera_set_chunk_mode().</p>
             <p>Convenience function for enabling a set of chunk data. Chunk mode is activated, or deactivated
 if <code>chunk_list</code> is <code>NULL</code> or empty. All chunk data not listed are&nbsp;disabled.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1300,7 +1807,9 @@ if <code>chunk_list</code> is <code>NULL</code> or empty. All chunk data not lis
           <div class="docblock">
             No description available.
           </div>
-          
+          <div class="docblock">
+            <p><span class="emblem available-next" title="This method will be available in the next stable release">unstable</span>&nbsp;<span class="emblem available">since: 0.10</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1309,7 +1818,9 @@ if <code>chunk_list</code> is <code>NULL</code> or empty. All chunk data not lis
             <p>Sets exposure time. User should take care to set a value compatible with
 the desired frame rate. Negative <code>exposure_time_us</code> is&nbsp;ignored.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1317,7 +1828,9 @@ the desired frame rate. Negative <code>exposure_time_us</code> is&nbsp;ignored.<
           <div class="docblock">
             <p>Configures automatic exposure&nbsp;feature.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1325,7 +1838,9 @@ the desired frame rate. Negative <code>exposure_time_us</code> is&nbsp;ignored.<
           <div class="docblock">
             <p>Set a float feature&nbsp;value.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1333,7 +1848,9 @@ the desired frame rate. Negative <code>exposure_time_us</code> is&nbsp;ignored.<
           <div class="docblock">
             <p>Sets the number of frames to capture in MultiFrame&nbsp;mode.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1342,7 +1859,19 @@ the desired frame rate. Negative <code>exposure_time_us</code> is&nbsp;ignored.<
             <p>Configures a fixed frame rate mode. Once acquisition start is triggered, the video stream will be acquired with the
 given frame rate. A negative or zero <code>frame_rate</code> value disables the frame rate&nbsp;limit.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Camera.set_frame_rate_enable.html">arv_camera_set_frame_rate_enable</a></h6>
+          <div class="docblock">
+            No description available.
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available-next" title="This method will be available in the next stable release">unstable</span>&nbsp;<span class="emblem available">since: 0.10</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1350,7 +1879,9 @@ given frame rate. A negative or zero <code>frame_rate</code> value disables the 
           <div class="docblock">
             <p>Sets the gain of the <span class="caps">ADC</span> converter. Negative <code>gain</code> is&nbsp;ignored.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1358,7 +1889,9 @@ given frame rate. A negative or zero <code>frame_rate</code> value disables the 
           <div class="docblock">
             <p>Configures automatic gain&nbsp;feature.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1366,7 +1899,9 @@ given frame rate. A negative or zero <code>frame_rate</code> value disables the 
           <div class="docblock">
             <p>Set an integer feature&nbsp;value.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1374,7 +1909,9 @@ given frame rate. A negative or zero <code>frame_rate</code> value disables the 
           <div class="docblock">
             <p>Defines pixel&nbsp;format.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1382,7 +1919,9 @@ given frame rate. A negative or zero <code>frame_rate</code> value disables the 
           <div class="docblock">
             <p>Defines pixel format described by a&nbsp;string.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1391,7 +1930,9 @@ given frame rate. A negative or zero <code>frame_rate</code> value disables the 
             <p>Sets the feature range check policy. When enabled, before being set, the value of all nodes with an <code>ArvGcFloat</code> or
 <code>ArvGcInteger</code> interface will be checked against their Min and Max&nbsp;properties.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.8</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.8</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1400,7 +1941,19 @@ given frame rate. A negative or zero <code>frame_rate</code> value disables the 
             <p>Defines the region of interest which will be transmitted in the video
 stream. Negative <code>x</code> or <code>y</code> values, or not strictly positive <code>width</code> or <code>height</code> values are&nbsp;ignored.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Camera.set_register.html">arv_camera_set_register</a></h6>
+          <div class="docblock">
+            <p>Set a register&nbsp;content.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available-next" title="This method will be available in the next stable release">unstable</span>&nbsp;<span class="emblem available">since: 0.10.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1408,7 +1961,9 @@ stream. Negative <code>x</code> or <code>y</code> values, or not strictly positi
           <div class="docblock">
             <p>Sets the Genicam register cache&nbsp;policy.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.8</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.8</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1416,7 +1971,9 @@ stream. Negative <code>x</code> or <code>y</code> values, or not strictly positi
           <div class="docblock">
             <p>Set an string feature&nbsp;value.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1425,7 +1982,9 @@ stream. Negative <code>x</code> or <code>y</code> values, or not strictly positi
             <p>Configures the camera in trigger mode. Typical values for source are &#8220;Line1&#8221; or &#8220;Line2&#8221;. See the camera documentation
 for the allowed values.  Source can also be &#8220;Software&#8221;. In this case, an acquisition is triggered by a call to&nbsp;arv_camera_software_trigger().</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1434,7 +1993,9 @@ for the allowed values.  Source can also be &#8220;Software&#8221;. In this case
             <p>Sets the trigger source. This function doesn&#8217;t check if the camera is configured
 to actually use this source as a&nbsp;trigger.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1443,7 +2004,9 @@ to actually use this source as a&nbsp;trigger.</p>
             <p>Sends a software trigger command to <code>camera</code>. The camera must be previously
 configured to use a software trigger, using <code>arv_camera_set_trigger</code>().</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1451,7 +2014,9 @@ configured to use a software trigger, using <code>arv_camera_set_trigger</code>(
           <div class="docblock">
             <p>Starts video stream&nbsp;acquisition.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1459,7 +2024,9 @@ configured to use a software trigger, using <code>arv_camera_set_trigger</code>(
           <div class="docblock">
             <p>Stops video stream&nbsp;acquisition.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1467,7 +2034,9 @@ configured to use a software trigger, using <code>arv_camera_set_trigger</code>(
           <div class="docblock">
             No description available.
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1475,7 +2044,9 @@ configured to use a software trigger, using <code>arv_camera_set_trigger</code>(
           <div class="docblock">
             No description available.
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1483,7 +2054,9 @@ configured to use a software trigger, using <code>arv_camera_set_trigger</code>(
           <div class="docblock">
             No description available.
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1491,7 +2064,9 @@ configured to use a software trigger, using <code>arv_camera_set_trigger</code>(
           <div class="docblock">
             <p>Set the bandwith limit or, if <code>bandwith</code> is not strictly positive, disable the&nbsp;limit.</p>
           </div>
-          <div class="docblock"><p>Available since: 0.8.0</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.0</span></p>
+          </div>
         </div>
       
         <div class="">
@@ -1499,14 +2074,16 @@ configured to use a software trigger, using <code>arv_camera_set_trigger</code>(
           <div class="docblock">
             No description available.
           </div>
-          <div class="docblock"><p>Available since: 0.8.17</p></div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 0.8.17</span></p>
+          </div>
         </div>
       
       </div>
 
       
         
-        <div class="toggle-wrapper default-hide ancestor-methods"><h5 style="display:block;">Methods inherited from <a class="external" href="javascript:void(0)" data-link="class.Object.html" data-namespace="GObject">GObject</a> (42)</h5>
+        <div class="toggle-wrapper default-hide ancestor-methods"><h5 style="display:block;">Methods inherited from <a class="external" href="javascript:void(0)" data-link="class.Object.html" data-namespace="GObject">GObject</a> (43)</h5>
           <div class="docblock">
           
             <div class="docblock">
@@ -1526,7 +2103,9 @@ configured to use a software trigger, using <code>arv_camera_set_trigger</code>(
             <div class="docblock">
               <p>Initializes the object implementing the&nbsp;interface.</p>
             </div>
-            <div class="docblock"><p>Available since: 2.22</p></div>
+            <div class="docblock">
+              <p><span class="emblem available-next" title="This method will be available in the next stable release">unstable</span>&nbsp;<span class="emblem available">since: 2.22</span></p>
+            </div>
           
           </div>
         </div>
@@ -1547,22 +2126,22 @@ configured to use a software trigger, using <code>arv_camera_set_trigger</code>(
       
         <div class="">
           <h6><a href="property.Camera.device.html">Aravis.Camera:device</a></h6>
-
           <div class="docblock">
             <p>Internal device&nbsp;object.</p>
           </div>
-
-          
+          <div class="docblock">
+            <p><span class="emblem available-next" title="This property will be available in the next stable release">unstable</span>&nbsp;<span class="emblem available">since: 0.10</span></p>
+          </div>
         </div>
       
         <div class="">
           <h6><a href="property.Camera.name.html">Aravis.Camera:name</a></h6>
-
           <div class="docblock">
             <p>Internal device name for object&nbsp;construction.</p>
           </div>
-
-          
+          <div class="docblock">
+            <p><span class="emblem available-next" title="This property will be available in the next stable release">unstable</span>&nbsp;<span class="emblem available">since: 0.10</span></p>
+          </div>
         </div>
       
       </div>
@@ -1592,12 +2171,14 @@ configured to use a software trigger, using <code>arv_camera_set_trigger</code>(
         
         <div class="toggle-wrapper default-hide ancestor-signals"><h5 style="display:block;">Signals inherited from <a class="external" href="javascript:void(0)" data-link="class.Object.html" data-namespace="GObject">GObject</a> (1)</h5>
           <div class="docblock">
-          <h6><a class="external" href="javascript:void(0)" data-namespace="GObject" data-link="signal.Object.notify.html">GObject.Object::notify</a></h6>
+          <h6><a class="external" href="javascript:void(0)" data-namespace="GObject" data-link="signal.Object.notify.html">GObject::notify</a></h6>
             <div class="docblock">
               <p>The notify signal is emitted on an object when one of its properties has
 its value set through g_object_set_property(), g_object_set(), et&nbsp;al.</p>
             </div>
-            
+            <div class="docblock">
+              <p><span class="emblem available-next" title="This signal will be available in the next stable release">unstable</span>&nbsp;<span class="emblem available">since: 2.0</span></p>
+            </div>
           
           </div>
         </div>
@@ -1621,6 +2202,7 @@ its value set through g_object_set_property(), g_object_set(), et&nbsp;al.</p>
       <div class="docblock">
         <pre><code>struct AravisCameraClass {
   GObjectClass parent_class;
+  None padding;
   
 }</code></pre>
       </div>
@@ -1633,18 +2215,15 @@ its value set through g_object_set_property(), g_object_set(), et&nbsp;al.</p>
       <div class="docblock">
         <h6>Class members</h6>
 
-        <table class="members">
+        <dl class="members">
         
-        <tr>
-          <td style="vertical-align:top"><code>parent_class</code></td>
-          <td style="vertical-align:top"><pre><code>GObjectClass</code></pre></td>
-        </tr>
-        <tr>
-          <td>&nbsp;</td>
-          <td style="vertical-align:top">No description available.</td>
-        </td>
+          <dt><code>parent_class: GObjectClass</code></dt>
+          <dd>No description available.</dd>
         
-        </table>
+          <dt><code>padding: None</code></dt>
+          <dd>No description available.</dd>
+        
+        </dd>
       </div>
       
     </div>
